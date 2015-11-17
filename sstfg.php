@@ -531,7 +531,14 @@ $key
 } // end show subscription form
 
 // edit user profile form
-function sstfg_form_user_edit_profile(){
+function sstfg_form_user_edit_profile($atts){
+	extract( shortcode_atts( array(
+		'login_page_url' => '',
+	), $atts ));
+	if ( !is_user_logged_in() ) {
+		wp_redirect($login_page_url); exit;
+	}
+
 	$action = get_permalink();
 	global $extra_fields;
 
