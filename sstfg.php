@@ -544,11 +544,14 @@ function sstfg_form_user_edit_profile($atts){
 	$action = get_permalink();
 	global $extra_fields;
 
+	global $current_user;
+	get_currentuserinfo();
+	$user_id = $current_user->ID;
+	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
+
 	// if edit profile form has been sent
 	if ( array_key_exists('wp-submit',$_POST) ) {
-		global $current_user;
-		get_currentuserinfo();
-
+	
 		$email = sanitize_text_field($_POST['user_email']);
 		$pass = sanitize_text_field($_POST['user_pass']);
 		$pass2 = sanitize_text_field($_POST['user_pass_confirm']);
@@ -574,7 +577,6 @@ function sstfg_form_user_edit_profile($atts){
 
 		} else {
 			// current user data
-			$user_id = $current_user->ID;
 			if ( $pass != '' ) { wp_set_password( $pass, $user_id ); }
 			$fields_to_update['ID'] = $user_id;
 			$fields_to_update['user_email'] = $email;
@@ -600,8 +602,6 @@ function sstfg_form_user_edit_profile($atts){
 			$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>";
 		} else { $feedback_out = ''; }
 
-		global $current_user;
-		get_currentuserinfo();
 		$username = $current_user->user_login;
 		$email = $current_user->user_email;
 		foreach ( $extra_fields as $ef ) {
@@ -625,15 +625,21 @@ function sstfg_form_user_edit_profile($atts){
 		} elseif ( $ef['type'] == 'radio' ) {
 			$options_out = "";
 			foreach ( $ef['options'] as $k => $v ) {
+				if ( $user_subscription == '1' && $ef['label'] == 'user_ticket_order' && $k == 'random' ) {
+					// if user subscription is decouverte then deactivate random mode
+					$disabled_out = " disabled"; $help_out = "<p class='help-block col-sm-4'><small>".__('Random mode is not available in this type of subscription.')."</small></p>";} else { $disabled_out = ""; }
 				if ( $$ef['label'] == $k ) { $checked_out = " checked"; } else { $checked_out = ''; }
-				$options_out .= "<label><input type='radio' name='".$ef['label']."' id='".$k."' value='".$k."'".$checked_out."> ".$v."</label>";
+				$options_out .= "<label><input type='radio' name='".$ef['label']."' id='".$k."' value='".$k."'".$checked_out.$disabled_out."> ".$v."</label>";
 			}
+			if ( !isset($help_out) ) { $help_out = ""; }
 			$extra_output .= "
 				<fieldset class='form-group ".$ef['label']."'>
 					".$ef['name']."
 					<div class='radio'>".$options_out."</div>
+					".$help_out."
 				</fieldset>
 			";
+			unset($help_out);
 
 		} elseif ( $ef['type'] == 'checkbox' ) {
 			if ( $$ef['label'] != '' ) { $checked_out = " checked"; } else { $checked_out = ''; }
