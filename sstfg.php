@@ -9,7 +9,6 @@ License: GPLv3
 */
 
 // ACTIONS and FILTERS
-
 // Add custom post type
 add_action(  'init', 'sstfg_create_post_type', 0 );
 // Custom Taxonomies
@@ -22,17 +21,17 @@ add_filter( 'user_contactmethods', 'sstfg_extra_user_profile_fields' );
 add_action( 'wp_login_failed', 'sstfg_login_failed' );
 // redirect to right log in page when blank username or password
 add_action( 'authenticate', 'sstfg_blank_login');
-
 // end ACTIONS and FILTERS
 
 // SHORTCODES
-
 // show subscription form
 add_shortcode('sstfg_subscription', 'sstfg_show_subscription_form');
 // show user login/signup form
 add_shortcode('sstfg_login_register', 'sstfg_show_user_form');
-
 // end SHORTCODES
+
+// PAGE TEMPLATES CREATOR
+include("include/page-templater.php");
 
 // register post types
 function sstfg_create_post_type() {
@@ -401,8 +400,7 @@ function sstfg_show_user_form( $atts ) {
 } // end show user login/signup form
 
 // subsctription form
-function sstfg_form_user_subscription($redirect_url = '' ){
-	$action = $redirect_url;
+function sstfg_form_user_subscription($action){
 	$form_out = "
 		<form class='row' id='suscriptionform' name='suscriptionform' method='post' action='" .$action. "' role='form'>
 			<div class='form-horizontal col-md-12'>
@@ -416,18 +414,18 @@ function sstfg_form_user_subscription($redirect_url = '' ){
 } // end subscription form
 
 // verification form
-function sstfg_form_user_verification($redirect_url = '',$feedback_out ){
-	$action = $redirect_url;
-	$form_out = $feedback_out. "
+function sstfg_form_user_verification($action = '',$feedback_out = '',$subscription_url ){
+	$form_out = $feedback_out. "<h2>".__('Verify your account','sstfg')."</h2>
 		<form class='row' id='verificationform' name='verificationform' method='post' action='" .$action. "' role='form'>
 			<div class='form-horizontal col-md-12'>
+			<p>".__('Introduce below the key you have received in your email. If you have no verification key or you have lost yours, you can <a href="'.$subscription_url.'">ask for another verification key</a>.','sstfg')."</p>
 			<fieldset class='form-group'>
 				<label for='sstfg-key'>
 					<input id='sstfg-key' class='btn btn-primary' type='text' value='' name='sstfg-key' />
 				</label>
 			</fieldset>
 			<fieldset class='form-group'>
-				<input id='sstfg-verification' class='btn btn-primary' type='submit' value='".__('Verify my email','sstfg')."' name='sstfg-subscription' />
+				<input id='sstfg-verification' class='btn btn-primary' type='submit' value='".__('Verify me','sstfg')."' name='sstfg-verification' />
 			</fieldset>
 			</div>
 		</form>
@@ -435,7 +433,8 @@ function sstfg_form_user_verification($redirect_url = '',$feedback_out ){
 	return $form_out;
 } // end verification form
 
-function sstfg_show_user_profile($suscription){
+function sstfg_form_user_profile($feedback_out){
+	return $feedback_out;
 }
 
 // show subscription form
@@ -445,17 +444,17 @@ function sstfg_show_subscription_form() {
 	$redirect_url = get_permalink();
 	$subscription_url = $redirect_url."?action=subscription";
 	$verification_url = $redirect_url."?action=verification";
-	$user_panel_url = $redirect_url."?action=";
+	$user_panel_url = $redirect_url;
+	$feedback_out = "";
 	$user_id = get_current_user_id();
 	$user_data = get_userdata( $user_id );
-	$subscription = get_user_meta( 'sstfg_subscription', $user_id );
+	$subscription = get_user_meta( $user_id,'sstfg_subscription', true );
 
 	// ACTIONS
 	// if subscription form has been sent
 	if ( array_key_exists('action',$_GET) && array_key_exists('sstfg-subscription',$_POST) ) {
 		// generate code and save it in db
 		$key = wp_generate_password(18,true,true);
-echo $key;
 		update_user_meta( $user_id, 'sstfg_subscription', $key );
 		// send code
 		$to = $user_data->user_email;
@@ -486,7 +485,7 @@ $key
 		//$headers[] = 'Content-type: text/html; charset=utf-8' . "\r\n";
 
 //		wp_mail( $to, $subject, $message, $headers);
-		// go to confirm page
+		// redirection to verification page
 		wp_redirect($verification_url);
 		exit;
 
@@ -498,29 +497,33 @@ $key
 		elseif ( array_key_exists('sstfg-key',$_POST) ) { $mail_key = sanitize_text_field($_POST['sstfg-key']); }
 		else { $mail_key = ""; }
 
-		if ( $mail_key === $db_key && $mail_key != '' ) {
+		if ( $mail_key === $subscription && $mail_key != '' ) {
 			update_user_meta($user_id,'sstfg_subscription','1');
-			$feedback_type = "success";
-			$feedback_text = __('Your email has been verified. Now you can <a href="'.$redirect_url.'">configure your subscription</a>.','sstfg');
-			$feedback_actions = "";
+			wp_redirect($user_panel_url."?verification=success");
+			exit;
 		} else {
 			$feedback_type = "danger";
-			$feedback_text = __('You can introduce your key manually below. If you have no verification key or you have lost yours, you can <a href="'.$newkey_url.'">ask for another verification key</a>.','sstfg');
-			$feedback_actions = sstfg_form_user_verification(get_permalink(),'');
+			$feedback_text = __('The key is not correct. Try again.','sstfg');
 		}
-		$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>".$feedback_actions;
-	}
+		$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>";
+	} // end if verification form has been sent
 
 	// OUTPUTS
 	if ( $subscription == '' || array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'subscription' ) { // user not subscribed
-		return sstfg_form_user_subscription($verification_url,'');
+		return sstfg_form_user_subscription($subscription_url);
 
-	} elseif ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'verification' ) { // user subscribed but not verified
-		return sstfg_form_user_verification($redirect_url,$feedback_out);
+	} elseif ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'verification' || $subscription != '' && $subscription != '1' && $subscription != '2' ) { // user subscribed but not verified
+		return sstfg_form_user_verification($verification_url,$feedback_out,$subscription_url);
 
 	} elseif ( $subscription == '1' || $subscription == '2' ) { // user subscribed and verified
-		sstfg_show_user_profile($suscription);
+		if ( array_key_exists('verification',$_GET) && sanitize_text_field($_GET['verification']) == 'success' ) {
+			$feedback_type = "success";
+			$feedback_text = __('Your email has been verified. Now you can <a href="'.$redirect_url.'">configure your subscription</a>.','sstfg');
+			$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>";
+		} else { $feedback_out = ""; }
+		sstfg_form_user_profile($feedback_out);
 
 	}
 } // end show subscription form
+
 ?>
