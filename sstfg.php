@@ -32,6 +32,8 @@ add_shortcode('sstfg_subscription', 'sstfg_show_subscription_form');
 add_shortcode('sstfg_login_register', 'sstfg_show_user_form');
 // show edit user profile form
 add_shortcode('sstfg_user_profile', 'sstfg_form_user_edit_profile');
+// adds content to a page depending on subscription type
+add_shortcode( 'sstfg_if', 'sstfg_if_subscription_type' );
 // end SHORTCODES
 
 // PAGE TEMPLATES CREATOR
@@ -693,5 +695,19 @@ function sstfg_form_user_edit_profile($atts){
 	return $form_out;
 
 } // end edit user profile form
+
+// adds content to a page depending on subscription type
+function sstfg_if_subscription_type( $atts, $content = null ) {
+	if ( !is_user_logged_in() ) return;
+
+	extract( shortcode_atts( array(
+		'subscription' => '',
+	), $atts ));
+	$user_id = get_current_user_id();
+	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
+	if ( $subscription == $user_subscription )
+		return '<div>' . $content . '</div>';
+	else return;
+}
 
 ?>
