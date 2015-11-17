@@ -21,6 +21,8 @@ add_filter( 'user_contactmethods', 'sstfg_extra_user_profile_fields' );
 add_action( 'wp_login_failed', 'sstfg_login_failed' );
 // redirect to right log in page when blank username or password
 add_action( 'authenticate', 'sstfg_blank_login');
+// Load map JavaScript and styles
+add_action( 'wp_enqueue_scripts', 'sstfg_register_load_scripts' );
 // end ACTIONS and FILTERS
 
 // SHORTCODES
@@ -34,6 +36,19 @@ add_shortcode('sstfg_user_profile', 'sstfg_form_user_edit_profile');
 
 // PAGE TEMPLATES CREATOR
 include("include/page-templater.php");
+
+// Register and load scripts
+function sstfg_register_load_scripts() {
+	if ( is_page_template('sstfg-form.php') ) {
+		wp_enqueue_script(
+			'sstfg-js',
+			plugins_url( 'js/sstfg.js' , __FILE__),
+			array('jquery'),
+			'0.1',
+			TRUE
+		);
+	}	
+} // end register load map scripts
 
 // register post types
 function sstfg_create_post_type() {
@@ -90,21 +105,11 @@ function sstfg_rewrite_flush() {
 
 // sstfg extra fields in user profile
 $extra_fields = array(
-//	array(
-//		'name' => __('Extra personal information', 'sstfg'),
-//		'label' => 'user_mobile',
-//		'type' => 'group'
-//	),
 	array(
 		'name' => __('Mobile phone', 'sstfg'),
 		'label' => 'user_mobile',
 		'type' => 'input'
 	),
-//	array(
-//		'name' => __('Ticket access', 'sstfg'),
-//		'label' => 'user_ticket_access',
-//		'type' => 'group'
-//	),
 	array(
 		'name' => __('Ticket Access mode', 'sstfg'),
 		'label' => 'user_ticket_access_mode',
@@ -615,7 +620,7 @@ function sstfg_form_user_edit_profile(){
 				$options_out .= "<label><input type='radio' name='".$ef['label']."' id='".$k."' value='".$k."'".$checked_out."> ".$v."</label>";
 			}
 			$extra_output .= "
-				<fieldset class='form-group'>
+				<fieldset class='form-group ".$ef['label']."'>
 					".$ef['name']."
 					<div class='radio'>".$options_out."</div>
 				</fieldset>
@@ -624,7 +629,7 @@ function sstfg_form_user_edit_profile(){
 		} elseif ( $ef['type'] == 'checkbox' ) {
 			if ( $$ef['label'] != '' ) { $checked_out = " checked"; } else { $checked_out = ''; }
 			$extra_output .= "
-				<fieldset class='form-group'>
+				<fieldset class='form-group ".$ef['label']."'>
 					<div class='col-sm-offset-3 col-sm-3 checkbox'>
 						<label>
 							<input type='checkbox' name='".$ef['label']."' id='".$ef['label']."' value='please'".$checked_out."> ".$ef['name']."
