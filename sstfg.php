@@ -23,8 +23,16 @@ add_action( 'wp_login_failed', 'sstfg_login_failed' );
 // redirect to right log in page when blank username or password
 add_action( 'authenticate', 'sstfg_blank_login');
 
-
 // end ACTIONS and FILTERS
+
+// SHORTCODES
+
+// show subscription form
+add_shortcode('sstfg_subscription', 'sstfg_show_subscription_form');
+// show user login/signup form
+add_shortcode('sstfg_login_register', 'sstfg_show_user_form');
+
+// end SHORTCODES
 
 // register post types
 function sstfg_create_post_type() {
@@ -350,9 +358,6 @@ De acuerdo con lo dispuesto en el artículo 5 de la Ley Orgánica 15/1999, de 13
 
 } // end display register form
 
-
-
-add_shortcode('sstfg_login_register', 'sstfg_show_user_form');
 // show user login/signup form
 function sstfg_show_user_form( $atts ) {
 	if ( is_user_logged_in() ) return;
@@ -395,4 +400,127 @@ function sstfg_show_user_form( $atts ) {
 	
 } // end show user login/signup form
 
+// subsctription form
+function sstfg_form_user_subscription($redirect_url = '' ){
+	$action = $redirect_url;
+	$form_out = "
+		<form class='row' id='suscriptionform' name='suscriptionform' method='post' action='" .$action. "' role='form'>
+			<div class='form-horizontal col-md-12'>
+			<fieldset class='form-group'>
+				<input id='sstfg-subscription' class='btn btn-primary' type='submit' value='".__('Subscribe me','sstfg')."' name='sstfg-subscription' />
+			</fieldset>
+			</div>
+		</form>
+	";
+	return $form_out;
+} // end subscription form
+
+// verification form
+function sstfg_form_user_verification($redirect_url = '',$feedback_out ){
+	$action = $redirect_url;
+	$form_out = $feedback_out. "
+		<form class='row' id='verificationform' name='verificationform' method='post' action='" .$action. "' role='form'>
+			<div class='form-horizontal col-md-12'>
+			<fieldset class='form-group'>
+				<label for='sstfg-key'>
+					<input id='sstfg-key' class='btn btn-primary' type='text' value='' name='sstfg-key' />
+				</label>
+			</fieldset>
+			<fieldset class='form-group'>
+				<input id='sstfg-verification' class='btn btn-primary' type='submit' value='".__('Verify my email','sstfg')."' name='sstfg-subscription' />
+			</fieldset>
+			</div>
+		</form>
+	";
+	return $form_out;
+} // end verification form
+
+function sstfg_show_user_profile($suscription){
+}
+
+// show subscription form
+function sstfg_show_subscription_form() {
+	if ( !is_user_logged_in() ) return;
+
+	$redirect_url = get_permalink();
+	$subscription_url = $redirect_url."?action=subscription";
+	$verification_url = $redirect_url."?action=verification";
+	$user_panel_url = $redirect_url."?action=";
+	$user_id = get_current_user_id();
+	$user_data = get_userdata( $user_id );
+	$subscription = get_user_meta( 'sstfg_subscription', $user_id );
+
+	// ACTIONS
+	// if subscription form has been sent
+	if ( array_key_exists('action',$_GET) && array_key_exists('sstfg-subscription',$_POST) ) {
+		// generate code and save it in db
+		$key = wp_generate_password(18,true,true);
+echo $key;
+		update_user_meta( $user_id, 'sstfg_subscription', $key );
+		// send code
+		$to = $user_data->user_email;
+		$subject = "Bebooda SSTFG verification";
+		$message = '
+Hi ' .$user_data->user_login. ','
+. "\r\n\r\n" .
+'You have subscribed to SSTFG successfully. Just one more step to be sure that this is your email.'
+. "\r\n\r\n" .
+'To verify your email you can visit the following link: '.$verification_url.'&key='.$key
+. "\r\n\r\n" .
+'If that did not work you can introduce the code directly in the verification page: '.$verification_url
+. "\r\n\r\n" .
+'Here you have the code to verify your email:'
+. "\r\n\r\n" .
+$key
+. "\r\n\r\n" .
+'Welcome to SSTFG.'
+. "\r\n" .
+'Bebooda'
+;
+		$headers[] = 'From: Bebooda SSTFG <sstfg@bebooda.org>' . "\r\n";
+		$headers[] = 'Sender: Bebooda Notification System <no-reply@bebooda.org>' . "\r\n";
+		$headers[] = 'Reply-To:  Bebooda SSTFG <sstfg@bebooda.org>' . "\r\n";
+		$headers[] = 'To: <' .$to. '>' . "\r\n";
+		// To send HTML mail, the Content-type header must be set, uncomment the following two lines
+		//$headers[]  = 'MIME-Version: 1.0' . "\r\n";
+		//$headers[] = 'Content-type: text/html; charset=utf-8' . "\r\n";
+
+//		wp_mail( $to, $subject, $message, $headers);
+		// go to confirm page
+		wp_redirect($verification_url);
+		exit;
+
+	} // end if subscription form has been sent
+
+	// if verification form has been sent
+	elseif ( array_key_exists('sstfg-verification',$_POST) ) {
+		if ( array_key_exists('key',$_GET) ) { $mail_key = sanitize_text_field($_GET['key']); }
+		elseif ( array_key_exists('sstfg-key',$_POST) ) { $mail_key = sanitize_text_field($_POST['sstfg-key']); }
+		else { $mail_key = ""; }
+
+		if ( $mail_key === $db_key && $mail_key != '' ) {
+			update_user_meta($user_id,'sstfg_subscription','1');
+			$feedback_type = "success";
+			$feedback_text = __('Your email has been verified. Now you can <a href="'.$redirect_url.'">configure your subscription</a>.','sstfg');
+			$feedback_actions = "";
+		} else {
+			$feedback_type = "danger";
+			$feedback_text = __('You can introduce your key manually below. If you have no verification key or you have lost yours, you can <a href="'.$newkey_url.'">ask for another verification key</a>.','sstfg');
+			$feedback_actions = sstfg_form_user_verification(get_permalink(),'');
+		}
+		$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>".$feedback_actions;
+	}
+
+	// OUTPUTS
+	if ( $subscription == '' || array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'subscription' ) { // user not subscribed
+		return sstfg_form_user_subscription($verification_url,'');
+
+	} elseif ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'verification' ) { // user subscribed but not verified
+		return sstfg_form_user_verification($redirect_url,$feedback_out);
+
+	} elseif ( $subscription == '1' || $subscription == '2' ) { // user subscribed and verified
+		sstfg_show_user_profile($suscription);
+
+	}
+} // end show subscription form
 ?>
