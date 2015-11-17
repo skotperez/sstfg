@@ -78,7 +78,7 @@ function sstfg_create_post_type() {
 		//'menu_icon' => get_template_directory_uri() . '/images/quincem-dashboard-pt-badge.png',
 		'hierarchical' => true, // if true this post type will be as pages
 		'query_var' => true,
-		'supports' => array('title', 'editor','author'),
+		'supports' => array('title', 'editor','author','page-attributes'),
 		'rewrite' => array('slug'=>'billet','with_front'=>false),
 		'can_export' => true,
 		'_builtin' => false,
@@ -87,15 +87,47 @@ function sstfg_create_post_type() {
 
 // register taxonomies
 function sstfg_build_taxonomies() {
-	// Fecha taxonomy
-	register_taxonomy( 'sequence', array('billet'), array(
+	// Base sequence taxonomy
+	register_taxonomy( 'sequence-base', array('billet'), array(
+		'labels' => array(
+			'name' => __( 'Base Sequences','sstfg' ),
+			'singular_name' => __( 'Base Sequence','sstfg' ),
+			'search_items' => __( 'Search Base Sequences','sstfg' ),
+			'all_items' => __( 'All Base Sequences','sstfg' ),
+			'parent_item' => __( 'Parent Base Sequence','sstfg' ),
+			'parent_item_colon' => __( 'Parent Base Sequence:','sstfg' ),
+			'edit_item' => __( 'Edit Base Sequence','sstfg' ),
+			'update_item' => __( 'Update Base Sequence','sstfg' ),
+			'add_new_item' => __( 'Add new Base Sequence','sstfg' ),
+			'new_item_name' => __( 'Name of the new Base Sequence' ),
+			'menu_name' => __( 'Base Sequence','sstfg' )
+		),
 		'hierarchical' => true,
-		'label' => __( 'Sequence','sstfg' ),
-		'name' => __( 'Sequences','sstfg' ),
-		'query_var' => 'sequence',
-		'rewrite' => array( 'slug' => 'sequence', 'with_front' => false ),
+		'query_var' => 'sequence-base',
+		'rewrite' => array( 'slug' => 'sequence-base', 'with_front' => false ),
 		'show_admin_column' => true
 	) );
+	//  sequence composse taxonomy
+	register_taxonomy( 'sequence-composee', array('billet'), array(
+		'labels' => array(
+			'name' => __( 'Mixed Sequences','sstfg' ),
+			'singular_name' => __( 'Mixed Sequence','sstfg' ),
+			'search_items' => __( 'Search Mixed Sequences','sstfg' ),
+			'all_items' => __( 'All Mixed Sequences','sstfg' ),
+			'parent_item' => __( 'Parent Mixed Sequence','sstfg' ),
+			'parent_item_colon' => __( 'Parent Mixed Sequence:','sstfg' ),
+			'edit_item' => __( 'Edit Mixed Sequence','sstfg' ),
+			'update_item' => __( 'Update Mixed Sequence','sstfg' ),
+			'add_new_item' => __( 'Add new Mixed Sequence','sstfg' ),
+			'new_item_name' => __( 'Name of the new Mixed Sequence' ),
+			'menu_name' => __( 'Mixed Sequence' )
+		),
+		'hierarchical' => true,
+		'query_var' => 'sequence-composee',
+		'rewrite' => array( 'slug' => 'sequence-composee', 'with_front' => false ),
+		'show_admin_column' => true
+	) );
+
 }
 
 // rewrite flush rules to init post type and taxonomies
