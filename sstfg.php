@@ -28,6 +28,8 @@ add_action( 'authenticate', 'sstfg_blank_login');
 add_shortcode('sstfg_subscription', 'sstfg_show_subscription_form');
 // show user login/signup form
 add_shortcode('sstfg_login_register', 'sstfg_show_user_form');
+// show edit user profile form
+add_shortcode('sstfg_user_profile', 'sstfg_form_user_edit_profile');
 // end SHORTCODES
 
 // PAGE TEMPLATES CREATOR
@@ -132,7 +134,7 @@ $extra_fields = array(
 	),
 	array(
 		'name' => __('Send me the tickets to my email address', 'sstfg'),
-		'label' => 'user_ticket_order',
+		'label' => 'user_ticket_send_to_mail',
 		'type' => 'checkbox'
 	)
 );
@@ -149,8 +151,8 @@ function sstfg_extra_user_profile_fields( $user ) {
 
 
 // user login form 
-function sstfg_form_user_login( $redirect_url = '',$register_url,$feedback_out ) {
-	$login_action = wp_login_url($redirect_url);
+function sstfg_form_user_login( $action,$register_url,$feedback_out ) {
+	$login_action = wp_login_url($action);
 	$form_out = $feedback_out. "
 		<form class='row' id='loginform' name='loginform' method='post' action='" .$login_action. "' role='form'>
 			<div class='form-horizontal col-md-12'>
@@ -235,9 +237,9 @@ function sstfg_blank_login( $user ){
 } // end redirect to right log in page when blank username or password
 
 // user register form
-function sstfg_form_user_register($register_action,$login_url) {
+function sstfg_form_user_register($action,$login_url) {
 
-	if ( array_key_exists('wp-submit',$_POST) && sanitize_text_field($_POST['wp-submit']) == 'Regístrate' ) {
+	if ( array_key_exists('wp-submit',$_POST) ) {
 		$username = sanitize_text_field($_POST['user_login']);
 		$email = sanitize_text_field($_POST['user_email']);
 		$pass = sanitize_text_field($_POST['user_pass']);
@@ -259,7 +261,7 @@ function sstfg_form_user_register($register_action,$login_url) {
 			$feedback_type = "danger"; $feedback_text = "<strong>La contraseña no coincide</strong>. Inténtalo otra vez.";
 
 		} elseif ( !array_key_exists('user_accept',$_POST) || sanitize_text_field($_POST['user_accept']) != 'Acepto' ) {
-			$feedback_type = "danger"; $feedback_text = "<strong>Tienes que aceptar las condiciones legales</strong>. Y quizás leerlas antes de aceptarlas.";
+			$feedback_type = "danger"; $feedback_text = "<strong>Tienes que aceptar las condiciones legales</strong>. Y quizás leerlas antes.";
 
 		} else { $feedback_type = ""; }
 
@@ -268,7 +270,7 @@ function sstfg_form_user_register($register_action,$login_url) {
 			if ( $pass == '' ) { $pass = wp_generate_password( 12, false ); }
 			$user_id = wp_create_user( $username, $pass, $email );
 
-			wp_redirect(get_permalink()."?action=login&register=success");
+			wp_redirect($login_url."&register=success");
 			exit;
 		}
 
@@ -276,7 +278,7 @@ function sstfg_form_user_register($register_action,$login_url) {
 
 	$req_class = " <span class='glyphicon glyphicon-asterisk'></span>";
 	$form_out = $feedback_out. "
-	<form class='row' name='registerform' action='".$register_action."' method='post'>
+	<form class='row' name='registerform' action='".$action."' method='post'>
 		<div class='form-horizontal col-md-12'>
 		<fieldset class='form-group'>
 			<label for='user_login' class='col-sm-3 control-label'>Nombre de usuario ".$req_class."</label>
@@ -362,16 +364,17 @@ function sstfg_show_user_form( $atts ) {
 	if ( is_user_logged_in() ) return;
 
 	extract( shortcode_atts( array(
-		'redirect_url' => '',
+		'subscription_page_url' => '',
 	), $atts ));
-	$redirect_url = preg_replace("/\?.*$/","",$redirect_url);
+	$redirect_url = preg_replace("/\?.*$/","",$subscription_page_url);
+	$action = get_permalink();
 	$login_action = wp_login_url($redirect_url);
-	$login_url = get_permalink()."?action=login";
-	$register_url = get_permalink()."?action=register";
+	$login_url = $action."?action=login";
+	$register_url = $action."?action=register";
 
 //	if ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) != 'login' || !array_key_exists('action',$_GET) ) { // if action is register
 	if ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'register' ) { // if action is register		
-		return sstfg_form_user_register($register_url,$login_url);
+		return sstfg_form_user_register($action,$login_url);
 
 	} else {	
 		if ( array_key_exists('login',$_GET) ) {
@@ -389,7 +392,7 @@ function sstfg_show_user_form( $atts ) {
 
 		} else { $feedback_out = ""; }
 
-		return sstfg_form_user_login($redirect_url,$register_url,$feedback_out);
+		return sstfg_form_user_login($action,$register_url,$feedback_out);
 
 //	} elseif ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'register' ) { // if action is register
 //	} elseif ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'edit' ) { // if action is edit profile
@@ -433,18 +436,17 @@ function sstfg_form_user_verification($action = '',$feedback_out = '',$subscript
 	return $form_out;
 } // end verification form
 
-function sstfg_form_user_profile($feedback_out){
-	return $feedback_out;
-}
-
 // show subscription form
-function sstfg_show_subscription_form() {
+function sstfg_show_subscription_form($atts) {
 	if ( !is_user_logged_in() ) return;
 
-	$redirect_url = get_permalink();
-	$subscription_url = $redirect_url."?action=subscription";
-	$verification_url = $redirect_url."?action=verification";
-	$user_panel_url = $redirect_url;
+	extract( shortcode_atts( array(
+		'user_panel_url' => '',
+	), $atts ));
+	$redirect_url = preg_replace("/\?.*$/","",$user_panel_url);
+	$action = get_permalink();
+	$subscription_url = $action."?action=subscription";
+	$verification_url = $action."?action=verification";
 	$feedback_out = "";
 	$user_id = get_current_user_id();
 	$user_data = get_userdata( $user_id );
@@ -484,7 +486,7 @@ $key
 		//$headers[]  = 'MIME-Version: 1.0' . "\r\n";
 		//$headers[] = 'Content-type: text/html; charset=utf-8' . "\r\n";
 
-//		wp_mail( $to, $subject, $message, $headers);
+		wp_mail( $to, $subject, $message, $headers);
 		// redirection to verification page
 		wp_redirect($verification_url);
 		exit;
@@ -499,7 +501,7 @@ $key
 
 		if ( $mail_key === $subscription && $mail_key != '' ) {
 			update_user_meta($user_id,'sstfg_subscription','1');
-			wp_redirect($user_panel_url."?verification=success");
+			wp_redirect($redirect_url."?verification=success");
 			exit;
 		} else {
 			$feedback_type = "danger";
@@ -516,14 +518,168 @@ $key
 		return sstfg_form_user_verification($verification_url,$feedback_out,$subscription_url);
 
 	} elseif ( $subscription == '1' || $subscription == '2' ) { // user subscribed and verified
-		if ( array_key_exists('verification',$_GET) && sanitize_text_field($_GET['verification']) == 'success' ) {
-			$feedback_type = "success";
-			$feedback_text = __('Your email has been verified. Now you can <a href="'.$redirect_url.'">configure your subscription</a>.','sstfg');
-			$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>";
-		} else { $feedback_out = ""; }
-		sstfg_form_user_profile($feedback_out);
+		wp_redirect($redirect_url);
+		exit;
 
 	}
+
 } // end show subscription form
+
+// edit user profile form
+function sstfg_form_user_edit_profile(){
+	$action = get_permalink();
+	global $extra_fields;
+
+	// if edit profile form has been sent
+	if ( array_key_exists('wp-submit',$_POST) ) {
+		global $current_user;
+		get_currentuserinfo();
+
+		$email = sanitize_text_field($_POST['user_email']);
+		$pass = sanitize_text_field($_POST['user_pass']);
+		$pass2 = sanitize_text_field($_POST['user_pass_confirm']);
+
+		foreach ( $extra_fields as $ef ) {
+			$$ef['label'] = sanitize_text_field($_POST[$ef['label']]);
+			$fields_to_update[$ef['label']] = $$ef['label'];
+		}
+
+		if ( email_exists($email) && $email != $current_user->user_email ) {
+			$feedback_type = "danger"; $feedback_text = "<strong>La dirección de correo que elegiste ya está asociada a otro usuario</strong>. Tendrás que usar otra.";
+
+		} elseif ( $email == '' ) {
+			$feedback_type = "danger"; $feedback_text = "<strong>El correo electrónico es un campo obligatorio</strong>: no puedes dejarlo en blanco.";
+
+		} elseif ( $pass != '' && $pass != $pass2 ) {
+			$feedback_type = "danger"; $feedback_text = "<strong>La contraseña no coincide</strong>. Inténtalo otra vez.";
+
+		} else { $feedback_type = ''; }
+
+		if ( $feedback_type != '' ) {
+			$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>";
+
+		} else {
+			// current user data
+			$user_id = $current_user->ID;
+			if ( $pass != '' ) { wp_set_password( $pass, $user_id ); }
+			$fields_to_update['ID'] = $user_id;
+			$fields_to_update['user_email'] = $email;
+			$updated_id = wp_update_user( $fields_to_update );
+			wp_redirect(get_permalink()."?edit_profile=success");
+			exit;
+
+		}
+
+	} // end if edit profile form has been sent
+
+	else {
+		if ( array_key_exists('edit_profile',$_GET) && sanitize_text_field($_GET['edit_profile']) == 'success' ) {
+			$feedback_type = "success"; $feedback_text = __('Your profile has been updated.','sstfg');
+
+		} 
+		elseif ( array_key_exists('verification',$_GET) && sanitize_text_field($_GET['verification']) == 'success' ) {
+			$feedback_type = "success"; $feedback_text = __('Your email has been verified.','sstfg');
+
+		} else { $feedback_type = ''; }
+
+		if ( $feedback_type != '' ) { 
+			$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>";
+		} else { $feedback_out = ''; }
+
+		global $current_user;
+		get_currentuserinfo();
+		$username = $current_user->user_login;
+		$email = $current_user->user_email;
+		foreach ( $extra_fields as $ef ) {
+			$$ef['label'] = $current_user->$ef['label'];
+		}
+
+	}
+
+	$extra_output = "";
+	foreach ( $extra_fields as $ef ) {
+		if ( $ef['type'] == 'input' ) {
+			$extra_output .= "
+				<fieldset class='form-group'>
+					<label for='".$ef['label']."' class='col-sm-3 control-label'>".$ef['name']."</label>
+					<div class='col-sm-5'>
+						<input id='".$ef['label']."' class='form-control' type='text' value='".$$ef['label']."' name='".$ef['label']."' />
+					</div>
+				</fieldset>
+			";
+
+		} elseif ( $ef['type'] == 'radio' ) {
+			$options_out = "";
+			foreach ( $ef['options'] as $k => $v ) {
+				if ( $$ef['label'] == $k ) { $checked_out = " checked"; } else { $checked_out = ''; }
+				$options_out .= "<label><input type='radio' name='".$ef['label']."' id='".$k."' value='".$k."'".$checked_out."> ".$v."</label>";
+			}
+			$extra_output .= "
+				<fieldset class='form-group'>
+					".$ef['name']."
+					<div class='radio'>".$options_out."</div>
+				</fieldset>
+			";
+
+		} elseif ( $ef['type'] == 'checkbox' ) {
+			if ( $$ef['label'] != '' ) { $checked_out = " checked"; } else { $checked_out = ''; }
+			$extra_output .= "
+				<fieldset class='form-group'>
+					<div class='col-sm-offset-3 col-sm-3 checkbox'>
+						<label>
+							<input type='checkbox' name='".$ef['label']."' id='".$ef['label']."' value='please'".$checked_out."> ".$ef['name']."
+						</label>
+					</div>
+				</fieldset>
+			";
+
+		}
+	}
+
+	$req_class = " <span class='glyphicon glyphicon-asterisk'></span>";
+	$form_out = $feedback_out. "
+	<form class='row' name='edit_profile_form' action='".$action."' method='post'>
+		<div class='form-horizontal col-md-12'>
+		<fieldset class='form-group'>
+			<label for='user_login' class='col-sm-3 control-label'>Nombre de usuario ".$req_class."</label>
+			<div class='col-sm-5'>
+				<input id='user_login' class='form-control' type='text' value='".$username."' name='user_login' disabled='disabled' />
+			</div>
+			<p class='help-block col-sm-4'><small><span class='glyphicon glyphicon-asterisk'></span> Campos requeridos.<br /><strong>El nombre de usuario no se puede cambiar</strong>.</small></p>
+		</fieldset>
+		<fieldset class='form-group'>
+			<label for='user_email' class='col-sm-3 control-label'>Correo electrónico ".$req_class."</label>
+			<div class='col-sm-5'>
+				<input id='user_email' class='form-control' type='text' value='".$email."' name='user_email' />
+			</div>
+		</fieldset>
+		<fieldset class='form-group'>
+			<label for='user_pass' class='col-sm-3 control-label'>Nueva contraseña</label>
+			<div class='col-sm-5'>
+				<input id='user_pass' class='form-control' type='password' size='20' value='' name='user_pass' />
+			</div>
+			<p class='help-block col-sm-4'><small><strong>Si deseas cambiar la contraseña del usuario</strong>, escribe aquí la nueva. En caso contrario, deja las casillas en blanco.</small></p>
+		</fieldset>
+		<fieldset class='form-group'>
+			<label for='user_pass_confirm' class='col-sm-3 control-label'>Confirma nueva contraseña</label>
+			<div class='col-sm-5'>
+				<input id='user_pass_confirm' class='form-control' type='password' size='20' value='' name='user_pass_confirm' />
+			</div>
+			<p class='help-block col-sm-4'><small>Recuerda elegir una contraseña fuerte: incluye letras y números, mayúsculas y minúsculas, caracteres especiales.</small></p>
+		</fieldset>
+		".$extra_output."
+		<fieldset class='form-group'>
+			<div class='col-sm-offset-3 col-sm-5'>
+				<div class='pull-right'>
+					<input id='wp-submit' class='btn btn-primary' type='submit' value='Actualizar' name='wp-submit' />
+				</div>
+    			</div>
+		</fieldset>
+		</div>
+	</form>
+	";
+	return $form_out;
+
+} // end edit user profile form
 
 ?>
