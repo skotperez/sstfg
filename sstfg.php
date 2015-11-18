@@ -590,6 +590,15 @@ function sstfg_form_user_edit_profile($atts){
 		wp_redirect($login_page_url); exit;
 	}
 
+	global $current_user;
+	get_currentuserinfo();
+	$user_id = $current_user->ID;
+	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
+
+	if ( $user_subscription != '1' && $user_subscription != '1.5' && $user_subscription != '2' ) {
+		wp_redirect($login_page_url."?action=subscription"); exit;
+	}
+
 	$action = get_permalink();
 	global $extra_fields;
 
@@ -858,7 +867,6 @@ function sstfg_last_ticket($user_id) {
 	$user_tickets = get_user_meta( $user_id,'sstfg_ticket', true );
 	if (is_array($user_tickets)) {
 		$last_ticket = end($user_tickets);
-//		$ticket_out = $last_ticket['ID'];
 		$args = array(
 			'post_type' => 'billet',
 			'posts_per_page' => '1',
@@ -888,12 +896,18 @@ function sstfg_access_to_tickets_panel($atts) {
 	if ( !is_user_logged_in() ) {
 		wp_redirect($login_page_url."?ref=".get_permalink()); exit;
 	}
-	$action = get_permalink();
 
 	// current user options
 	global $current_user;
 	get_currentuserinfo();
 	$user_id = $current_user->ID;
+	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
+
+	if ( $user_subscription != '1' && $user_subscription != '1.5' && $user_subscription != '2' ) {
+		wp_redirect($login_page_url."?action=subscription"); exit;
+	}
+
+	$action = get_permalink();
 
 	// ACTIONS
 	$ticket = "";
