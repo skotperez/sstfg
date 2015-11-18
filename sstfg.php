@@ -299,24 +299,23 @@ function sstfg_form_user_register($action,$login_url) {
 		$email = sanitize_text_field($_POST['user_email']);
 		$pass = sanitize_text_field($_POST['user_pass']);
 		$pass2 = sanitize_text_field($_POST['user_pass_confirm']);
+		$search = " ";
+		$username_with_spaces = strpos($username,$search);
 
 		if ( username_exists($username) ) {
-			$feedback_type = "danger"; $feedback_text = "<strong>El nombre de usuario que elegiste ya existe</strong>. Tendrás que elegir otro.";
+			$feedback_type = "danger"; $feedback_text = __('<strong>This username is already in use</strong>. Try someone other.','sstfg');
 
-		} elseif ( validate_username($username) === false ) {
-			$feedback_type = "danger"; $feedback_text = "<strong>El nombre de usuario que elegiste no es válido</strong>. Los nombres de usuario solo pueden estar formados por caracteres alfanuméricos.";
+		} elseif ( validate_username($username) === false || $username_with_spaces !== false ) {
+			$feedback_type = "danger"; $feedback_text = __('<strong>This username is not valid</strong>. A username can only have alphanumerical character, no special characters neither spaces','sstfg');
 
 		} elseif ( email_exists($email) ) {
-			$feedback_type = "danger"; $feedback_text = "<strong>La dirección de correo que elegiste ya está asociada a otro usuario</strong>. Tendrás que usar otra.";
+			$feedback_type = "danger"; $feedback_text = __('<strong>This email address is already in use</strong>. Try another one.','sstfg');
 
-		} elseif ( $username == '' || $email == '' ) {
-			$feedback_type = "danger"; $feedback_text = "<strong>Alguno de los campos requeridos para el registro no fueron rellenados</strong>. Solo son dos: vuelve a intentarlo.";
+		} elseif ( $username == '' || $email == '' || $password == '' ) {
+			$feedback_type = "danger"; $feedback_text = __('<strong>Some of the required fields are empty</strong>.','sstfg');
 
 		} elseif ( $pass != '' && $pass != $pass2 ) {
-			$feedback_type = "danger"; $feedback_text = "<strong>La contraseña no coincide</strong>. Inténtalo otra vez.";
-
-		} elseif ( !array_key_exists('user_accept',$_POST) || sanitize_text_field($_POST['user_accept']) != 'Acepto' ) {
-			$feedback_type = "danger"; $feedback_text = "<strong>Tienes que aceptar las condiciones legales</strong>. Y quizás leerlas antes.";
+			$feedback_type = "danger"; $feedback_text = __('<strong>The password doesn\'t match</strong>. Check it, please.','sstfg');
 
 		} else { $feedback_type = ""; }
 
@@ -336,67 +335,34 @@ function sstfg_form_user_register($action,$login_url) {
 	<form class='row' name='registerform' action='".$action."' method='post'>
 		<div class='form-horizontal col-md-12'>
 		<fieldset class='form-group'>
-			<label for='user_login' class='col-sm-3 control-label'>Nombre de usuario ".$req_class."</label>
+			<label for='user_login' class='col-sm-3 control-label'>".__('Username','sstfg').$req_class."</label>
 			<div class='col-sm-5'>
 				<input id='user_login' class='form-control' type='text' value='".$username."' name='user_login' />
 			</div>
-			<p class='help-block col-sm-4'><small><span class='glyphicon glyphicon-asterisk'></span> Campos requeridos.<br /><strong>Sin espacios, sin caracteres especiales</strong>.</small></p>
 		</fieldset>
 		<fieldset class='form-group'>
-			<label for='user_email' class='col-sm-3 control-label'>Correo electrónico ".$req_class."</label>
+			<label for='user_email' class='col-sm-3 control-label'>".__('Email','sstfg').$req_class."</label>
 			<div class='col-sm-5'>
 				<input id='user_email' class='form-control' type='text' value='".$email."' name='user_email' />
 			</div>
-			<p class='help-block col-sm-4'><small><strong>Para enviarte una nueva contraseña</strong> en caso de que lo necesites: no enviamos spam ni vendemos tus datos.</small></p>
 		</fieldset>
 		</fieldset>
 		<fieldset class='form-group'>
-			<label for='user_pass' class='col-sm-3 control-label'>Contraseña</label>
+			<label for='user_pass' class='col-sm-3 control-label'>".__('Password','sstfg')."</label>
 			<div class='col-sm-5'>
 				<input id='user_pass' class='form-control' type='password' size='20' value='' name='user_pass' />
 			</div>
-			<p class='help-block col-sm-4'><small>No rellenes este campo si quieres recibir una contraseña generada automáticamente en tu dirección de correo electrónico.</small></p>
 		</fieldset>
 		<fieldset class='form-group'>
-			<label for='user_pass_confirm' class='col-sm-3 control-label'>Confirma la contraseña</label>
+			<label for='user_pass_confirm' class='col-sm-3 control-label'>".__('Confirm password','sstfg')."</label>
 			<div class='col-sm-5'>
 				<input id='user_pass_confirm' class='form-control' type='password' size='20' value='' name='user_pass_confirm' />
-			</div>
-			<p class='help-block col-sm-4'><small><strong>Elige una contraseña fuerte</strong>: incluye letras y números, mayúsculas y minúsculas, caracteres especiales.</small></p>
-		</fieldset>
-		<fieldset class='form-group'>
-			<label for='user_legal' class='col-sm-3 control-label'>Condiciones legales</label>
-			<div class='col-sm-5'>
-			<textarea id='user_legal' name='user_legal' class='form-control' rows='10' disabled>
-CLAÚSULA INFORMATIVA DE REGISTRO DE NUEVO USUARIO:
-
-De acuerdo con lo dispuesto en el artículo 5 de la Ley Orgánica 15/1999, de 13 de diciembre, de protección de datos de carácter personal (LOPD) el solicitante queda informado de:
-
-1.- Sus datos personales se incorporarán a los ficheros de datos personales cuya titularidad ostenta ASA. ASOCIACIÓN SOSTENIBILIDAD Y ARQUITECTURA, con domicilio social en el Pº de la Castellana, 12. Madrid 28046.
-
-2.- Las finalidades de los tratamientos de los datos personales serán:
-
-    Gestión de la información generada para creación de estadísticas y conclusiones en relación a materiales más empleados y carga medioambiental de los mismos en los proyectos y obras en la edificación. 
-    Gestión de la información relacionada con la Huella de Carbono en la edificación para la mejora o modificación de los documentos de apoyo.
-    Gestión y organización de las actividades de difusión y formación que se desarrollen en torno a los indicadores ambientales, cambio climático, sostenibilidad y arquitectura.
-    
-3.- Las cesiones de datos que se efectuarán serán las siguientes:
-
-    Las que resulten de la ejecución de las finalidades del tratamiento de los datos, que el solicitante declara conocer y aceptar.
-    Las que se realicen bajo los supuestos previstos en el artículo 11 de la LOPD.
-
-4.- Ejercicio de derechos de acceso, rectificación, cancelación y oposición: los interesados podrán ejercitar estos derechos en los términos recogidos en la LOPD y normativa de desarrollo, dirigiéndose a la Secretaría de la Asociación en su domicilio (Pº Castellana, 12 / 28046 Madrid).
-</textarea>
 			</div>
 		</fieldset>
 		<fieldset class='form-group'>
 			<div class='col-sm-offset-3 col-sm-5'>
-				<label for='user_accept'>
-					<input name='user_accept' id='user_accept' type='checkbox' value='Acepto' />
-					He leído y acepto estas condiciones legales y la <a href='/politica-privacidad' target='_blank'>Política de privacidad</a>
-				</label>
 				<div class='pull-right'>
-					<input id='wp-submit' class='btn btn-success' type='submit' value='Regístrate' name='wp-submit' />
+					<input id='wp-submit' class='btn btn-success' type='submit' value='".__('Sign up','sstfg')."' name='wp-submit' />
 				</div>
     			</div>
 		</fieldset>
@@ -405,7 +371,7 @@ De acuerdo con lo dispuesto en el artículo 5 de la Ley Orgánica 15/1999, de 13
 	<div class='row'>
 		<div class='col-md-5 col-md-offset-3'>
 			<div class='pull-right'>
-				¿Ya tienes cuenta? <a class='btn btn-primary' href='".$login_url."'>Inicia sesión</a>
+				<a class='btn btn-primary' href='".$login_url."'>".__('I already have an account.','sstfg')."</a>
 			</div>
 		</div>
 	</div>
@@ -439,14 +405,14 @@ function sstfg_show_user_form( $atts ) {
 		if ( array_key_exists('login',$_GET) ) {
 			$lost_pass_url = wp_lostpassword_url(get_permalink()."?login=lost-password");
 			$login_fail = sanitize_text_field($_GET['login']);
-			if ( $login_fail == 'failed' ) { $feedback_type = "danger"; $feedback_text = "El nombre de usuario o la contraseña no son correctos. Por favor, inténtalo de nuevo. Si olvidaste tu contraseña, puedes <a class='btn btn-default' href='".$lost_pass_url."'>solicitar una nueva</a>"; }
-			if ( $login_fail == 'empty' ) { $feedback_type = "danger"; $feedback_text = "No rellenaste el nombre de usuario o la contraseña; necesitamos ambos para iniciar tu sesión. Si olvidaste tu contraseña, puedes <a class='btn btn-default' href='".$lost_pass_url."'>solicitar una nueva</a>"; }
-			elseif ( $login_fail == 'lost-password' ) { $feedback_type = "info"; $feedback_text = "<strong>Hemos enviado una nueva contraseña a tu dirección de correo</strong>. Debería llegar a tu buzón en un minuto; recuerda que puede haber ido a la carpeta de spam."; }
+			if ( $login_fail == 'failed' ) { $feedback_type = "danger"; $feedback_text = __('Username or password is not correct. Check them, please. Password forgotten?','sstfg')." <a class='btn btn-default' href='".$lost_pass_url."'>".__('get another one','sstfg')."</a>"; }
+			if ( $login_fail == 'empty' ) { $feedback_type = "danger"; $feedback_text = __('Username or password are empty. If you forgot your password','sstfg'). "<a class='btn btn-default' href='".$lost_pass_url."'>".__('get another one','sstfg')."</a>"; }
+			elseif ( $login_fail == 'lost-password' ) { $feedback_type = "info"; $feedback_text = __('<strong>A new password has been sent to your email address</strong>. You should receive it in a few moments. It may go to your spam folder.','sstfg'); }
 			$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>";
 
 		} elseif ( array_key_exists('register',$_GET) ) {
 			$register_fail = sanitize_text_field($_GET['register']);
-			if ( $register_fail == 'success' ) { $feedback_type = "success"; $feedback_text = "<strong>¡Bien!</strong> Te has registrado con éxito. Ahora puedes iniciar sesión y evaluar un proyecto."; }
+			if ( $register_fail == 'success' ) { $feedback_type = "success"; $feedback_text = __('<strong>Great!</strong> You have signed up successfully. You can log in now.','sstfg'); }
 			$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>";
 
 		} else { $feedback_out = ""; }
@@ -520,19 +486,19 @@ function sstfg_show_subscription_form($atts) {
 		update_user_meta( $user_id, 'sstfg_subscription', $key );
 		// send code
 		$to = $user_data->user_email;
-		$subject = "Bebooda SSTFG verification";
-		$message = '
-Hi ' .$user_data->user_login. ','
+		$subject = __('Bebooda SSTFG verification','sstfg');
+		$message = 
+__('Hi,','sstfg')
 . "\r\n\r\n" .
-'You have subscribed to SSTFG successfully. Just one more step to be sure that this is your email address.'
+__('You have subscribed to SSTFG successfully. Just one more step to be sure that this is your email address.','sstfg')
 . "\r\n\r\n" .
-'To verify your email you must introduce the code in this email in the verification page: '.$verification_url
+__('To verify your email you must introduce the code in this email in the verification page: ','sstfg').$verification_url
 . "\r\n\r\n" .
-'Here you have the code to verify your email:'
+__('Here you have the code to verify your email:','sstfg')
 . "\r\n\r\n" .
 $key
 . "\r\n\r\n" .
-'Welcome to SSTFG.'
+__('Welcome to SSTFG.','sstfg')
 . "\r\n" .
 'Bebooda'
 ;
@@ -621,13 +587,13 @@ function sstfg_form_user_edit_profile($atts){
 		}
 
 		if ( email_exists($email) && $email != $current_user->user_email ) {
-			$feedback_type = "danger"; $feedback_text = "<strong>La dirección de correo que elegiste ya está asociada a otro usuario</strong>. Tendrás que usar otra.";
+			$feedback_type = "danger"; $feedback_text = __('<strong>This email address is already in use</strong>. Try another one.','sstfg');
 
 		} elseif ( $email == '' ) {
-			$feedback_type = "danger"; $feedback_text = "<strong>El correo electrónico es un campo obligatorio</strong>: no puedes dejarlo en blanco.";
+			$feedback_type = "danger"; $feedback_text = __('<strong>Email is a required field</strong>.','sstfg');
 
 		} elseif ( $pass != '' && $pass != $pass2 ) {
-			$feedback_type = "danger"; $feedback_text = "<strong>La contraseña no coincide</strong>. Inténtalo otra vez.";
+			$feedback_type = "danger"; $feedback_text = __('<strong>Password dosn\'t match</strong>. Try it again.','sstfg');
 
 		} else { $feedback_type = ''; }
 
@@ -720,37 +686,35 @@ function sstfg_form_user_edit_profile($atts){
 	<form class='row' name='edit_profile_form' action='".$action."' method='post'>
 		<div class='form-horizontal col-md-12'>
 		<fieldset class='form-group'>
-			<label for='user_login' class='col-sm-3 control-label'>Nombre de usuario ".$req_class."</label>
+			<label for='user_login' class='col-sm-3 control-label'>".__('Username','sstfg').$req_class."</label>
 			<div class='col-sm-5'>
 				<input id='user_login' class='form-control' type='text' value='".$username."' name='user_login' disabled='disabled' />
 			</div>
-			<p class='help-block col-sm-4'><small><span class='glyphicon glyphicon-asterisk'></span> Campos requeridos.<br /><strong>El nombre de usuario no se puede cambiar</strong>.</small></p>
 		</fieldset>
 		<fieldset class='form-group'>
-			<label for='user_email' class='col-sm-3 control-label'>Correo electrónico ".$req_class."</label>
+			<label for='user_email' class='col-sm-3 control-label'>".__('Email','sstfg').$req_class."</label>
 			<div class='col-sm-5'>
 				<input id='user_email' class='form-control' type='text' value='".$email."' name='user_email' />
 			</div>
 		</fieldset>
 		<fieldset class='form-group'>
-			<label for='user_pass' class='col-sm-3 control-label'>Nueva contraseña</label>
+			<label for='user_pass' class='col-sm-3 control-label'>".__('New password','sstfg')."</label>
 			<div class='col-sm-5'>
 				<input id='user_pass' class='form-control' type='password' size='20' value='' name='user_pass' />
 			</div>
-			<p class='help-block col-sm-4'><small><strong>Si deseas cambiar la contraseña del usuario</strong>, escribe aquí la nueva. En caso contrario, deja las casillas en blanco.</small></p>
+			<p class='help-block col-sm-4'><small>".__('<strong>If you want to change your password</strong>, write the new one here. Otherwise, leave this field empty.','sstfg')."</small></p>
 		</fieldset>
 		<fieldset class='form-group'>
-			<label for='user_pass_confirm' class='col-sm-3 control-label'>Confirma nueva contraseña</label>
+			<label for='user_pass_confirm' class='col-sm-3 control-label'>".__('Confirm new password','sstfg')."</label>
 			<div class='col-sm-5'>
 				<input id='user_pass_confirm' class='form-control' type='password' size='20' value='' name='user_pass_confirm' />
 			</div>
-			<p class='help-block col-sm-4'><small>Recuerda elegir una contraseña fuerte: incluye letras y números, mayúsculas y minúsculas, caracteres especiales.</small></p>
 		</fieldset>
 		".$extra_output."
 		<fieldset class='form-group'>
 			<div class='col-sm-offset-3 col-sm-5'>
 				<div class='pull-right'>
-					<input id='wp-submit' class='btn btn-primary' type='submit' value='Actualizar' name='wp-submit' />
+					<input id='wp-submit' class='btn btn-primary' type='submit' value='".__('Update','sstfg')."' name='wp-submit' />
 				</div>
     			</div>
 		</fieldset>
