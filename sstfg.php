@@ -9,6 +9,8 @@ License: GPLv3
 */
 
 // ACTIONS and FILTERS
+// load plugin text domain for string translations
+add_action( 'plugins_loaded', 'sstfg_load_textdomain' );
 // Add custom post type
 add_action(  'init', 'sstfg_create_post_type', 0 );
 // Custom Taxonomies
@@ -45,6 +47,11 @@ add_shortcode( 'sstfg_tickets_panel', 'sstfg_access_to_tickets_panel' );
 // PAGE TEMPLATES CREATOR
 include("include/page-templater.php");
 
+// TEXT DOMAIN AND STRING TRANSLATION
+function sstfg_load_textdomain() {
+	load_plugin_textdomain( 'sstfg', false, plugin_basename( dirname( __FILE__ ) ) . '/lang' ); 
+}
+
 // Register and load scripts
 function sstfg_register_load_scripts() {
 	if ( is_page_template('sstfg-form.php') ) {
@@ -68,7 +75,7 @@ function sstfg_disable_admin_bar() {
 function sstfg_redirect_admin(){
 	if ( ! defined('DOING_AJAX') && ! current_user_can('edit_posts') ) {
 		wp_redirect( site_url() );
-		exit;		
+		exit;
 	}
 }
 
@@ -460,7 +467,7 @@ function sstfg_form_user_verification($action = '',$feedback_out = '',$subscript
 	$form_out = $feedback_out. "<h2>".__('Verify your account','sstfg')."</h2>
 		<form class='row' id='verificationform' name='verificationform' method='post' action='" .$action. "' role='form'>
 			<div class='form-horizontal col-md-12'>
-			<p>".__('Introduce below the key you have received in your email. If you have no verification key or you have lost yours, you can <a href="'.$subscription_url.'">ask for another verification key</a>.','sstfg')."</p>
+			<p>".__('You can enter below the key you have received in your email. Don\'t you have any verification key? Have you lost yours?','sstfg')." <a href='".$subscription_url."'>".__('get another verification key','sstfg')."</a></p>
 			<fieldset class='form-group'>
 				<label for='sstfg-key'>
 					<input id='sstfg-key' class='btn btn-primary' type='text' value='' name='sstfg-key' />
@@ -819,7 +826,7 @@ function sstfg_new_ticket($user_id) {
 	
 		if ( $count_all_tickets == $count_user_tickets && $user_mode == 'menu_order' ) {
 			update_user_meta($user_id,'sstfg_subscription', '1.5');
-			$ticket_out .= "<p><small>".__('This is the last ticket of the Decouverte sequence: you have finished it. Now you are ready to <a href="/user-panel">subscribe to the complete Small Steps To Feel Good sequence</a>.','sstfg')."</small></p>";
+			$ticket_out .= "<p><small>".__('This is the last ticket of the Decouverte sequence: you have finished it. Now you are ready to subscribe to the complete Small Steps To Feel Good sequence. You can do this from your User panel','sstfg')."</small></p>";
 		}
 
 	} elseif ( $user_subscription == '1.5' ) {

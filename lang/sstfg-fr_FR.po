@@ -1,0 +1,435 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Bebooda SSTFG\n"
+"POT-Creation-Date: 2015-11-18 17:49+0100\n"
+"PO-Revision-Date: 2015-11-18 17:52+0100\n"
+"Last-Translator: Alfonso Sánchez Uzábal <skotperez@voragine.net>\n"
+"Language-Team: Montera34 <info@montera34.com>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.10\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Poedit-KeywordsList: __;_e\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+#: ../sstfg.php:87
+msgid "Tickets"
+msgstr "Billets"
+
+#: ../sstfg.php:88
+msgid "Ticket"
+msgstr "Billet"
+
+#: ../sstfg.php:89
+msgid "Add ticket"
+msgstr "Ajouter un billet"
+
+#: ../sstfg.php:90
+msgid "Edit"
+msgstr "Éditer "
+
+#: ../sstfg.php:91
+msgid "Edit this ticket"
+msgstr "Éditer un billet"
+
+#: ../sstfg.php:92
+msgid "New ticket"
+msgstr "Nouveau billet"
+
+#: ../sstfg.php:93
+msgid "View ticket"
+msgstr "Voir le billet"
+
+#: ../sstfg.php:94
+msgid "View this ticket"
+msgstr "Voir ce billet"
+
+#: ../sstfg.php:95
+msgid "Search tickets"
+msgstr "Chercher des billets"
+
+#: ../sstfg.php:96
+msgid "No tickets found"
+msgstr "Aucun billet n'a été trouvé"
+
+#: ../sstfg.php:97
+msgid "No tickets in the trash"
+msgstr "Aucun billet dans la poubelle"
+
+#: ../sstfg.php:120
+msgid "Base Sequences"
+msgstr "Séquences de base"
+
+#: ../sstfg.php:121 ../sstfg.php:130
+msgid "Base Sequence"
+msgstr "Séquence de base"
+
+#: ../sstfg.php:122
+msgid "Search Base Sequences"
+msgstr "Chercher des séquences de base"
+
+#: ../sstfg.php:123
+msgid "All Base Sequences"
+msgstr "Toutes les séquences de base"
+
+#: ../sstfg.php:124
+msgid "Parent Base Sequence"
+msgstr "Séquence de base supérieure"
+
+#: ../sstfg.php:125
+msgid "Parent Base Sequence:"
+msgstr "Séquence de base supérieure:"
+
+#: ../sstfg.php:126
+msgid "Edit Base Sequence"
+msgstr "Éditer la séquence de base"
+
+#: ../sstfg.php:127
+msgid "Update Base Sequence"
+msgstr "Mettre à jour la séquence de base"
+
+#: ../sstfg.php:128
+msgid "Add new Base Sequence"
+msgstr "Ajouter une nouvelle séquence de base"
+
+#: ../sstfg.php:129
+msgid "Name of the new Base Sequence"
+msgstr "Nom d'une nouvelle séquence de base"
+
+#: ../sstfg.php:140
+msgid "Mixed Sequences"
+msgstr "Séquences composées"
+
+#: ../sstfg.php:141 ../sstfg.php:150
+msgid "Mixed Sequence"
+msgstr "Séquence composée"
+
+#: ../sstfg.php:142
+msgid "Search Mixed Sequences"
+msgstr "Chercher les séquences composées"
+
+#: ../sstfg.php:143
+msgid "All Mixed Sequences"
+msgstr "Toutes les séquences composées"
+
+#: ../sstfg.php:144
+msgid "Parent Mixed Sequence"
+msgstr "Séquence composée supérieure"
+
+#: ../sstfg.php:145
+msgid "Parent Mixed Sequence:"
+msgstr "Séquence composée supérieure:"
+
+#: ../sstfg.php:146
+msgid "Edit Mixed Sequence"
+msgstr "Éditer la séquence composée"
+
+#: ../sstfg.php:147
+msgid "Update Mixed Sequence"
+msgstr "Mettre à jour la séquence composée"
+
+#: ../sstfg.php:148
+msgid "Add new Mixed Sequence"
+msgstr "Ajouter une nouvelle séquence composée"
+
+#: ../sstfg.php:149
+msgid "Name of the new Mixed Sequence"
+msgstr "Nom d'une nouvelle séquence composée"
+
+#: ../sstfg.php:170
+msgid "Mobile phone"
+msgstr "Téléphone portable"
+
+#: ../sstfg.php:176
+msgid "Ticket Access mode"
+msgstr "Mode d’accès aux billets"
+
+#: ../sstfg.php:180
+msgid "Manual"
+msgstr "Manuel (à la demande)"
+
+#: ../sstfg.php:181
+msgid "Automatic"
+msgstr "Automatique, selon une périodicité"
+
+#: ../sstfg.php:186
+msgid "Ticket access regularity"
+msgstr "Périodicité..."
+
+#: ../sstfg.php:190
+msgid "Once a week"
+msgstr "Une fois par semaine"
+
+#: ../sstfg.php:191
+msgid "Twice a week"
+msgstr "Deux fois par semaine"
+
+#: ../sstfg.php:196
+msgid "Ticket order"
+msgstr "Mode de tirage"
+
+#: ../sstfg.php:200
+msgid "Random"
+msgstr "Au hasard"
+
+#: ../sstfg.php:201
+msgid "Sequential"
+msgstr "En séquence"
+
+#: ../sstfg.php:206
+msgid "Send me the tickets to my email address"
+msgstr "Envoyez-moi les billets à mon adresse mail"
+
+#: ../sstfg.php:219
+msgid "Current sequence"
+msgstr "Séquence actuelle"
+
+#: ../sstfg.php:232 ../sstfg.php:363 ../sstfg.php:714
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+#: ../sstfg.php:238 ../sstfg.php:376
+msgid "Password"
+msgstr "Mot de passe"
+
+#: ../sstfg.php:246
+msgid "Remember me"
+msgstr "Se souvenir de moi"
+
+#: ../sstfg.php:251
+msgid "Log in"
+msgstr "Se connecter "
+
+#: ../sstfg.php:260
+msgid "If you don't have an account yet:"
+msgstr "Si vous n'avez pas encore de compte:"
+
+#: ../sstfg.php:260 ../sstfg.php:390
+msgid "Sign up"
+msgstr "S'inscrire"
+
+#: ../sstfg.php:331
+msgid "<strong>This username is already in use</strong>. Try someone other."
+msgstr "<strong>Ce nom d'utilisateur est déjà pris</strong>. Essayer un autre "
+
+#: ../sstfg.php:334
+msgid ""
+"<strong>This username is not valid</strong>. A username can only have "
+"alphanumerical character, no special characters neither spaces"
+msgstr ""
+"<strong>Ce nom d'utilisateur n'est pas valide</strong>. Un nom d'utilisateur "
+"ne peut avoir que des caractère aplhanumérique, sans caractères spéciaux ni "
+"d'espaces. "
+
+#: ../sstfg.php:337 ../sstfg.php:615
+msgid "<strong>This email address is already in use</strong>. Try another one."
+msgstr ""
+"<strong>Cette adresse mail est déjà utilisée</strong>. Essayer avec une "
+"autre.  "
+
+#: ../sstfg.php:340
+msgid "<strong>Some of the required fields are empty</strong>."
+msgstr "<strong>Certains des champs requis sont vides</strong>."
+
+#: ../sstfg.php:343
+msgid "<strong>The password doesn't match</strong>. Check it, please."
+msgstr ""
+"<strong>Le mot de passe ne correspond pas</strong>. Merci de le vérifier. "
+
+#: ../sstfg.php:369 ../sstfg.php:720
+msgid "Email"
+msgstr "Mail"
+
+#: ../sstfg.php:382
+msgid "Confirm password"
+msgstr "Confirmer le mot de passe"
+
+#: ../sstfg.php:399
+msgid "I already have an account."
+msgstr "J'ai déjà un compte"
+
+#: ../sstfg.php:433
+msgid ""
+"Username or password is not correct. Check them, please. Password forgotten?"
+msgstr ""
+"Le nom d'utilsateur ou le mot de passe ne sont pas corrects. Merci de les "
+"vérifier. Mot de passe oublié? "
+
+#: ../sstfg.php:433 ../sstfg.php:434
+msgid "get another one"
+msgstr "Obtenir un autre "
+
+#: ../sstfg.php:434
+msgid "Username or password are empty. If you forgot your password"
+msgstr ""
+"Le nom d'utilisateur ou le mot de passe sont vides. Si vous avez oublié "
+"votre mot de passe"
+
+#: ../sstfg.php:435
+msgid ""
+"<strong>A new password has been sent to your email address</strong>. You "
+"should receive it in a few moments. It may go to your spam folder."
+msgstr ""
+"<strong>Un nouveau mot de passe a été envoyé à votre adresse mail</strong>. "
+"Vous devriez le recevoir dans quelques instants. Il peut être envoyé dans "
+"vos spams. "
+
+#: ../sstfg.php:440
+msgid ""
+"<strong>Great!</strong> You have signed up successfully. You can log in now."
+msgstr ""
+"<strong>Génial!</strong> Vous venez de vous inscrire avec succès. Vous "
+"pouvez vous connecter dès à présent. "
+
+#: ../sstfg.php:457
+msgid "Subscribe me"
+msgstr "M’abonner à SSTFG"
+
+#: ../sstfg.php:467
+msgid "Verify your account"
+msgstr "Vérifier votre compte"
+
+#: ../sstfg.php:470
+msgid ""
+"You can enter below the key you have received in your email. Don't you have "
+"any verification key? Have you lost yours?"
+msgstr ""
+"Introduire en dessous le code que vous avez reçu par mail. Si vous n'avez "
+"pas reçu de code de vérification ou vous les avez perdu:"
+
+#: ../sstfg.php:470
+msgid "get another verification key"
+msgstr "Obtenir un autre"
+
+#: ../sstfg.php:477
+msgid "Verify me"
+msgstr "Confirmer votre abonnement "
+
+#: ../sstfg.php:514
+msgid "Bebooda SSTFG verification"
+msgstr "Bebooda SSTFG confirmation "
+
+#: ../sstfg.php:516
+msgid "Hi,"
+msgstr "Salut, "
+
+#: ../sstfg.php:518
+msgid ""
+"You have subscribed to SSTFG successfully. Just one more step to be sure "
+"that this is your email address."
+msgstr ""
+"Vous vous êtes abonné à SSTFG avec succès. Plus qu'une étape pour valider "
+"votre adresse mail."
+
+#: ../sstfg.php:520
+msgid ""
+"To verify your email you must introduce the code in this email in the "
+"verification page: "
+msgstr ""
+"Pour vérifier votre abonnement veuillez introduire ce code sur la page de "
+"confirmation:"
+
+#: ../sstfg.php:522
+msgid "Here you have the code to verify your email:"
+msgstr "Voici le code de confirmation de votre adresse mail:"
+
+#: ../sstfg.php:526
+msgid "Welcome to SSTFG."
+msgstr "Bienvenue à SSTFG."
+
+#: ../sstfg.php:561
+msgid "The key is not correct. Try again."
+msgstr "Le code n'est pas bon. Essayer une nouvelle fois. "
+
+#: ../sstfg.php:618
+msgid "<strong>Email is a required field</strong>."
+msgstr "<strong>Le mail est un champs obligatoire</strong>."
+
+#: ../sstfg.php:621
+msgid "<strong>Password dosn't match</strong>. Try it again."
+msgstr ""
+"<strong>Le mot de mot ne correspond pas</strong>. Essayer une nouvelle fois."
+
+#: ../sstfg.php:643
+msgid "Your profile has been updated."
+msgstr "Votre profile a été mis à jour."
+
+#: ../sstfg.php:647
+msgid "Your email has been verified."
+msgstr "Votre mail a été vérifié."
+
+#: ../sstfg.php:680
+msgid "Random mode is not available in this type of subscription."
+msgstr "Le hasard n'est pas un mode disponible sur ce type de souscription. "
+
+#: ../sstfg.php:726
+msgid "New password"
+msgstr "Nouveau mot de passe"
+
+#: ../sstfg.php:730
+msgid ""
+"<strong>If you want to change your password</strong>, write the new one "
+"here. Otherwise, leave this field empty."
+msgstr ""
+"<strong>Si vous voulez changer de mot de passe</strong>,  veuillez écrire le "
+"nouveau ici. Sinon laisser le champs vide. "
+
+#: ../sstfg.php:733
+msgid "Confirm new password"
+msgstr "Confirmer le nouveau mot de passe"
+
+#: ../sstfg.php:742
+msgid "Update"
+msgstr "Mettre à jour"
+
+#: ../sstfg.php:820
+msgid "Here you have your new ticket:"
+msgstr "Ici votre nouveau billet:"
+
+#: ../sstfg.php:821 ../sstfg.php:872
+msgid "Download it (PDF)"
+msgstr "Le télécharger (PDF)"
+
+#: ../sstfg.php:824
+msgid "Something was wrong. We cannot serve you a new ticket."
+msgstr ""
+"Il y a eu une erreur. Nous ne pouvons pas vous remettre votre nouveau "
+"billet. "
+
+#: ../sstfg.php:829
+msgid ""
+"This is the last ticket of the Decouverte sequence: you have finished it. "
+"Now you are ready to subscribe to the complete Small Steps To Feel Good "
+"sequence. You can do this from your User panel"
+msgstr ""
+"Voici le dernier billet de la Séquence Découverte: vous venez de la finir. "
+"Vous êtes maintenant prêt pour souscrire à la séquence complète Small Steps "
+"To Feel Good.</a>. "
+
+#: ../sstfg.php:833
+msgid ""
+"You have finish the Decouverte sequence: to get more tickets <a href=\"/user-"
+"panel\">you must change your subscription</a>."
+msgstr ""
+"Vous venez de terminer la séquence découverte: Pour obtenir plus de billets "
+"<a href=\"/user-panel\"> vous devez changer votre souscription</a>."
+
+#: ../sstfg.php:871
+msgid "Here you have your last ticket:"
+msgstr "Voici votre dernier billet: "
+
+#: ../sstfg.php:875
+msgid "It seems that you still don't have any tickets."
+msgstr "Il semble que vous n'ayez pas encore de billet"
+
+#: ../sstfg.php:921
+msgid "Get new ticket"
+msgstr "Obtenir un nouveau billet"
+
+#: ../sstfg.php:933
+msgid "Get the last ticket"
+msgstr "Obtenir le dernier billet "
