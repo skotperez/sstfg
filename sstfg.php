@@ -144,39 +144,44 @@ $extra_fields = array(
 	array(
 		'name' => __('Mobile phone', 'sstfg'),
 		'label' => 'user_mobile',
-		'type' => 'input'
+		'type' => 'input',
+		'initial' => ''
 	),
 	array(
 		'name' => __('Ticket Access mode', 'sstfg'),
-		'label' => 'user_ticket_access_mode',
+		'label' => 'sstfg_ticket_access_mode',
 		'type' => 'radio',
 		'options' => array(
 			'manual' => __('Manual', 'sstfg'),
 			'automatic' => __('Automatic', 'sstfg')
-		)
+		),
+		'initial' => 'manual'
 	),
 	array(
 		'name' => __('Ticket access regularity', 'sstfg'),
-		'label' => 'user_ticket_access_regularity',
+		'label' => 'sstfg_ticket_access_regularity',
 		'type' => 'radio',
 		'options' => array(
 			'once' => __('Once a week', 'sstfg'),
 			'twice' => __('Twice a week', 'sstfg')
-		)
+		),
+		'initial' => ''
 	),
 	array(
 		'name' => __('Ticket order', 'sstfg'),
-		'label' => 'user_ticket_order',
+		'label' => 'sstfg_ticket_order',
 		'type' => 'radio',
 		'options' => array(
 			'rand' => __('Random', 'sstfg'),
 			'menu_order' => __('Sequential', 'sstfg')
-		)
+		),
+		'initial' => 'menu_order'
 	),
 	array(
 		'name' => __('Send me the tickets to my email address', 'sstfg'),
-		'label' => 'user_ticket_send_to_mail',
-		'type' => 'checkbox'
+		'label' => 'sstfg_ticket_send_to_mail',
+		'type' => 'checkbox',
+		'initial' => ''
 	)
 );
 
@@ -505,6 +510,7 @@ function sstfg_show_subscription_form($atts) {
 	$user_id = get_current_user_id();
 	$user_data = get_userdata( $user_id );
 	$subscription = get_user_meta( $user_id,'sstfg_subscription', true );
+	global $extra_fields;
 
 	// ACTIONS
 	// if subscription form has been sent
@@ -518,11 +524,9 @@ function sstfg_show_subscription_form($atts) {
 		$message = '
 Hi ' .$user_data->user_login. ','
 . "\r\n\r\n" .
-'You have subscribed to SSTFG successfully. Just one more step to be sure that this is your email.'
+'You have subscribed to SSTFG successfully. Just one more step to be sure that this is your email address.'
 . "\r\n\r\n" .
-'To verify your email you can visit the following link: '.$verification_url.'&key='.$key
-. "\r\n\r\n" .
-'If that did not work you can introduce the code directly in the verification page: '.$verification_url
+'To verify your email you must introduce the code in this email in the verification page: '.$verification_url
 . "\r\n\r\n" .
 'Here you have the code to verify your email:'
 . "\r\n\r\n" .
@@ -533,7 +537,8 @@ $key
 'Bebooda'
 ;
 		$headers[] = 'From: Bebooda SSTFG <sstfg@bebooda.org>' . "\r\n";
-		$headers[] = 'Sender: Bebooda Notification System <no-reply@bebooda.org>' . "\r\n";
+//		$headers[] = 'Sender: Bebooda Notification System <no-reply@bebooda.org>' . "\r\n";
+		$headers[] = 'Sender: Bebooda Notification System <info@montera34.com>' . "\r\n";
 		$headers[] = 'Reply-To:  Bebooda SSTFG <sstfg@bebooda.org>' . "\r\n";
 		$headers[] = 'To: <' .$to. '>' . "\r\n";
 		// To send HTML mail, the Content-type header must be set, uncomment the following two lines
@@ -548,15 +553,16 @@ $key
 	} // end if subscription form has been sent
 
 	// if verification form has been sent
-	elseif ( array_key_exists('sstfg-verification',$_POST) ) {
+	elseif ( array_key_exists('sstfg-verification',$_POST) || array_key_exists('key',$_GET) ) {
 		if ( array_key_exists('key',$_GET) ) { $mail_key = sanitize_text_field($_GET['key']); }
 		elseif ( array_key_exists('sstfg-key',$_POST) ) { $mail_key = sanitize_text_field($_POST['sstfg-key']); }
 		else { $mail_key = ""; }
-
+	echo $mail_key;
 		if ( $mail_key === $subscription && $mail_key != '' ) {
 			update_user_meta($user_id,'sstfg_subscription','1');
-			update_user_meta($user_id,'sstfg_current_sequence','decouverte');
-			update_user_meta($user_id,'sstfg_ticket_mode','menu_order');
+			foreach ( $extra_fields as $ef ) {
+				update_user_meta($user_id,$ef['label'],$ef['initial']);
+			}
 			wp_redirect($redirect_url."?verification=success");
 			exit;
 		} else {
@@ -601,11 +607,6 @@ function sstfg_form_user_edit_profile($atts){
 
 	$action = get_permalink();
 	global $extra_fields;
-
-	global $current_user;
-	get_currentuserinfo();
-	$user_id = $current_user->ID;
-	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
 
 	// if edit profile form has been sent
 	if ( array_key_exists('wp-submit',$_POST) ) {
@@ -683,7 +684,7 @@ function sstfg_form_user_edit_profile($atts){
 		} elseif ( $ef['type'] == 'radio' ) {
 			$options_out = "";
 			foreach ( $ef['options'] as $k => $v ) {
-				if ( $user_subscription == '1' && $ef['label'] == 'user_ticket_order' && $k == 'random' ) {
+				if ( $user_subscription == '1' && $ef['label'] == 'sstfg_ticket_order' && $k == 'rand' ) {
 					// if user subscription is decouverte then deactivate random mode
 					$disabled_out = " disabled"; $help_out = "<p class='help-block col-sm-4'><small>".__('Random mode is not available in this type of subscription.')."</small></p>";} else { $disabled_out = ""; }
 				if ( $$ef['label'] == $k ) { $checked_out = " checked"; } else { $checked_out = ''; }
@@ -778,8 +779,8 @@ function sstfg_if_subscription_type( $atts, $content = null ) {
 function sstfg_new_ticket($user_id) {
 	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
 	$user_sequence = get_user_meta( $user_id,'sstfg_current_sequence', true );
-	$user_mode = get_user_meta( $user_id,'user_ticket_order', true );
-	$user_tickets = get_user_meta( $user_id,'sstfg_ticket', true );
+	$user_mode = get_user_meta( $user_id,'sstfg_ticket_order', true );
+	$user_tickets = get_user_meta( $user_id,'sstfg_tickets', true );
 	if (is_array($user_tickets)) {
 		foreach ( $user_tickets as $ut ) { $user_tickets_id[] = $ut['ID']; }
 	} else { $user_tickets_id = ""; }
@@ -821,7 +822,7 @@ function sstfg_new_ticket($user_id) {
 					'ID' => $t->ID,
 					'date' => time()
 				);
-				update_user_meta( $user_id,'sstfg_ticket',$user_tickets);
+				update_user_meta( $user_id,'sstfg_tickets',$user_tickets);
 				$count_user_tickets = count($user_tickets);
 				$pdfs = get_attached_media( 'application/pdf', $t->ID );
 			}
@@ -864,7 +865,7 @@ function sstfg_new_ticket($user_id) {
 
 // get last ticket
 function sstfg_last_ticket($user_id) {
-	$user_tickets = get_user_meta( $user_id,'sstfg_ticket', true );
+	$user_tickets = get_user_meta( $user_id,'sstfg_tickets', true );
 	if (is_array($user_tickets)) {
 		$last_ticket = end($user_tickets);
 		$args = array(
