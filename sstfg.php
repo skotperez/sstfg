@@ -838,6 +838,7 @@ function sstfg_new_ticket($user_id) {
 			'post_type' => 'billet',
 			'posts_per_page' => '1',
 			'orderby' => $user_mode,
+			'order' => 'ASC',
 			'tax_query' => array(
 				array(
 					'taxonomy' => 'sequence-composee',
@@ -854,7 +855,29 @@ function sstfg_new_ticket($user_id) {
 
 // get last ticket
 function sstfg_last_ticket($user_id) {
+	$user_tickets = get_user_meta( $user_id,'sstfg_ticket', true );
+	if (is_array($user_tickets)) {
+		$last_ticket = end($user_tickets);
+//		$ticket_out = $last_ticket['ID'];
+		$args = array(
+			'post_type' => 'billet',
+			'posts_per_page' => '1',
+			'p' => $last_ticket['ID']
+		);
+		$tickets = get_posts($args);
+		foreach ( $tickets as $t ) {
+			$pdfs = get_attached_media( 'application/pdf', $t->ID );
+		}
+		foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
+		$ticket_out = "
+			<p>".__('Here you have your last ticket:','sstfg')."</p>
+			<p><strong>".$t->post_title."</strong>: <a href='".$pdf_url."' target='_blank'>".__('Download it (PDF)','sstfg')."</a></p>
+			";
+	} else {
+		$ticket_out = "<p class='alert alert-info' role='alert'>".__('It seems that you still don\'t have any tickets.','sstfg')."</p>";
+	}
 
+	return $ticket_out;
 } // end get last ticket
 
 // show panel to access to ticket
