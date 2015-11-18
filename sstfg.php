@@ -23,6 +23,10 @@ add_action( 'wp_login_failed', 'sstfg_login_failed' );
 add_action( 'authenticate', 'sstfg_blank_login');
 // Load map JavaScript and styles
 add_action( 'wp_enqueue_scripts', 'sstfg_register_load_scripts' );
+// Hide admin bar to subscribers
+add_action('set_current_user', 'sstfg_disable_admin_bar');
+// No access to admin panel for subscribers
+add_action( 'admin_init', 'sstfg_redirect_admin' );
 // end ACTIONS and FILTERS
 
 // SHORTCODES
@@ -53,6 +57,20 @@ function sstfg_register_load_scripts() {
 		);
 	}	
 } // end register load map scripts
+
+// Control rights for subscribers
+function sstfg_disable_admin_bar() {
+	if (!current_user_can('edit_posts')) {
+		//add_filter('show_admin_bar', '__return_false');
+		show_admin_bar(false);
+	}
+}
+function sstfg_redirect_admin(){
+	if ( ! defined('DOING_AJAX') && ! current_user_can('edit_posts') ) {
+		wp_redirect( site_url() );
+		exit;		
+	}
+}
 
 // register post types
 function sstfg_create_post_type() {
@@ -311,7 +329,7 @@ function sstfg_form_user_register($action,$login_url) {
 		} elseif ( email_exists($email) ) {
 			$feedback_type = "danger"; $feedback_text = __('<strong>This email address is already in use</strong>. Try another one.','sstfg');
 
-		} elseif ( $username == '' || $email == '' || $password == '' ) {
+		} elseif ( $username == '' || $email == '' || $pass == '' ) {
 			$feedback_type = "danger"; $feedback_text = __('<strong>Some of the required fields are empty</strong>.','sstfg');
 
 		} elseif ( $pass != '' && $pass != $pass2 ) {
@@ -399,7 +417,7 @@ function sstfg_show_user_form( $atts ) {
 	$register_url = $action."?action=register";
 
 	if ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'register' ) { // if action is register		
-		return sstfg_form_user_register($action,$login_url);
+		return sstfg_form_user_register($register_url,$login_url);
 
 	} else {	
 		if ( array_key_exists('login',$_GET) ) {
