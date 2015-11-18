@@ -34,6 +34,8 @@ add_shortcode('sstfg_login_register', 'sstfg_show_user_form');
 add_shortcode('sstfg_user_profile', 'sstfg_form_user_edit_profile');
 // adds content to a page depending on subscription type
 add_shortcode( 'sstfg_if', 'sstfg_if_subscription_type' );
+//  show panel to access to ticket
+add_shortcode( 'sstfg_tickets_panel', 'sstfg_access_to_tickets_panel' );
 // end SHORTCODES
 
 // PAGE TEMPLATES CREATOR
@@ -167,8 +169,8 @@ $extra_fields = array(
 		'label' => 'user_ticket_order',
 		'type' => 'radio',
 		'options' => array(
-			'random' => __('Random', 'sstfg'),
-			'sequential' => __('Sequential', 'sstfg')
+			'rand' => __('Random', 'sstfg'),
+			'menu_order' => __('Sequential', 'sstfg')
 		)
 	),
 	array(
@@ -182,8 +184,9 @@ $extra_fields = array(
 function sstfg_extra_user_profile_fields( $user ) {
 	global $extra_fields;
 	foreach ( $extra_fields as $ef ) {
-	 	$user_fields_method[$ef['label']] = $ef['name'];
+		$user_fields_method[$ef['label']] = $ef['name'];
 	}
+	$user_fields_method['sstfg_current_sequence'] = __('Current sequence','sstfg');
 	return $user_fields_method;
 
 } // end Register new user contact Methods: custom profile fields
@@ -236,8 +239,12 @@ function sstfg_form_user_login( $action,$register_url,$feedback_out ) {
 // redirect to right log in page when log in failed
 function sstfg_login_failed( $user ) {
 	// check what page the login attempt is coming from
-	$ref = $_SERVER['HTTP_REFERER'];
-	$ref = preg_replace("/\?.*$/","",$ref);
+	if ( array_key_exists('ref',$_GET) ) {
+		$redirect_url = sanitize_text_field($_GET['ref']);
+	} else {
+		$ref = $_SERVER['HTTP_REFERER'];
+		$ref = preg_replace("/\?.*$/","",$ref);
+	}
 
 	// check that were not on the default login page
 	if ( !empty($ref) && !strstr($ref,'wp-login') && !strstr($ref,'wp-admin') && $user!=null ) {
@@ -254,8 +261,12 @@ function sstfg_login_failed( $user ) {
 // redirect to right log in page when blank username or password
 function sstfg_blank_login( $user ){
 	// check what page the login attempt is coming from
-	$ref = $_SERVER['HTTP_REFERER'];
-	$ref = preg_replace('/\?.*$/','',$ref);
+	if ( array_key_exists('ref',$_GET) ) {
+		$redirect_url = sanitize_text_field($_GET['ref']);
+	} else {
+		$ref = $_SERVER['HTTP_REFERER'];
+		$ref = preg_replace('/\?.*$/','',$ref);
+	}
 
 	$error = false;
 	if( array_key_exists('log',$_POST) && sanitize_text_field($_POST['log']) == '' ||
@@ -405,13 +416,17 @@ function sstfg_show_user_form( $atts ) {
 	extract( shortcode_atts( array(
 		'subscription_page_url' => '',
 	), $atts ));
-	$redirect_url = preg_replace("/\?.*$/","",$subscription_page_url);
+	if ( array_key_exists('ref',$_GET) ) {
+		$redirect_url = sanitize_text_field($_GET['ref']);
+	} else {
+		$redirect_url = preg_replace("/\?.*$/","",$subscription_page_url);
+	}
+
 	$action = get_permalink();
 	$login_action = wp_login_url($redirect_url);
 	$login_url = $action."?action=login";
 	$register_url = $action."?action=register";
 
-//	if ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) != 'login' || !array_key_exists('action',$_GET) ) { // if action is register
 	if ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'register' ) { // if action is register		
 		return sstfg_form_user_register($action,$login_url);
 
@@ -432,10 +447,6 @@ function sstfg_show_user_form( $atts ) {
 		} else { $feedback_out = ""; }
 
 		return sstfg_form_user_login($action,$register_url,$feedback_out);
-
-//	} elseif ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'register' ) { // if action is register
-//	} elseif ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'edit' ) { // if action is edit profile
-//		return hce_edit_userdata_form();
 
 	} // end if action register or log in
 	
@@ -482,7 +493,11 @@ function sstfg_show_subscription_form($atts) {
 	extract( shortcode_atts( array(
 		'user_panel_url' => '',
 	), $atts ));
-	$redirect_url = preg_replace("/\?.*$/","",$user_panel_url);
+	if ( array_key_exists('ref',$_GET) ) {
+		$redirect_url = sanitize_text_field($_GET['ref']);
+	} else {
+		$redirect_url = preg_replace("/\?.*$/","",$user_panel_url);
+	}
 	$action = get_permalink();
 	$subscription_url = $action."?action=subscription";
 	$verification_url = $action."?action=verification";
@@ -540,6 +555,8 @@ $key
 
 		if ( $mail_key === $subscription && $mail_key != '' ) {
 			update_user_meta($user_id,'sstfg_subscription','1');
+			update_user_meta($user_id,'sstfg_current_sequence','decouverte');
+			update_user_meta($user_id,'sstfg_ticket_mode','menu_order');
 			wp_redirect($redirect_url."?verification=success");
 			exit;
 		} else {
@@ -746,6 +763,156 @@ function sstfg_if_subscription_type( $atts, $content = null ) {
 	if ( $subscription == $user_subscription )
 		return '<div>' . $content . '</div>';
 	else return;
-}
+} // end adds content to a page depending on subscription type
+
+// get new ticket
+function sstfg_new_ticket($user_id) {
+	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
+	$user_sequence = get_user_meta( $user_id,'sstfg_current_sequence', true );
+	$user_mode = get_user_meta( $user_id,'user_ticket_order', true );
+	$user_tickets = get_user_meta( $user_id,'sstfg_ticket', true );
+	if (is_array($user_tickets)) {
+		foreach ( $user_tickets as $ut ) { $user_tickets_id[] = $ut['ID']; }
+	} else { $user_tickets_id = ""; }
+
+	if ( $user_subscription == '1' ) {
+		$args = array(
+			'post_type' => 'billet',
+			'posts_per_page' => '-1',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'sequence-composee',
+					'field'    => 'slug',
+					'terms'    => $user_sequence,
+				),
+			)
+		);
+		$tickets = get_posts($args);
+		$count_all_tickets = count($tickets);
+
+		$args = array(
+			'post_type' => 'billet',
+			'posts_per_page' => '1',
+			'orderby' => $user_mode,
+			'order' => 'ASC',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'sequence-composee',
+					'field'    => 'slug',
+					'terms'    => $user_sequence,
+				),
+			),
+			'post__not_in' => $user_tickets_id
+		);
+		$tickets = get_posts($args);
+		$count = count($tickets);
+		if ( $count == 1 ) {
+			foreach ( $tickets as $t ) {
+				$user_tickets[] = array(
+					'ID' => $t->ID,
+					'date' => time()
+				);
+				update_user_meta( $user_id,'sstfg_ticket',$user_tickets);
+				$count_user_tickets = count($user_tickets);
+				$pdfs = get_attached_media( 'application/pdf', $t->ID );
+			}
+			foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
+			$ticket_out = "
+				<p>".__('Here you have your new ticket:','sstfg')."</p>
+				<p><strong>".$t->post_title."</strong>: <a href='".$pdf_url."' target='_blank'>".__('Download it (PDF)','sstfg')."</a></p>
+			";
+		} else {
+			$ticket_out = "<p class='alert alert-danger' role='alert'>".__('Something was wrong. We cannot serve you a new ticket.','sstfg')."</p>";
+		}
+	
+		if ( $count_all_tickets == $count_user_tickets && $user_mode == 'menu_order' ) {
+			update_user_meta($user_id,'sstfg_subscription', '1.5');
+			$ticket_out .= "<p><small>".__('This is the last ticket of the Decouverte sequence: you have finished it. Now you are ready to <a href="/user-panel">subscribe to the complete Small Steps To Feel Good sequence</a>.','sstfg')."</small></p>";
+		}
+
+	} elseif ( $user_subscription == '1.5' ) {
+		$ticket_out = "<p class='alert alert-info' role='alert'>".__('You have finish the Decouverte sequence: to get more tickets <a href="/user-panel">you must change your subscription</a>.','sstfg')."</p>";
+
+	} elseif ( $user_subscription == '2' ) {
+		$args = array(
+			'post_type' => 'billet',
+			'posts_per_page' => '1',
+			'orderby' => $user_mode,
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'sequence-composee',
+					'field'    => 'slug',
+					'terms'    => $user_sequence,
+				),
+			),
+		);
+
+	}
+
+	return $ticket_out;
+} // end get new ticket
+
+// get last ticket
+function sstfg_last_ticket($user_id) {
+
+} // end get last ticket
+
+// show panel to access to ticket
+function sstfg_access_to_tickets_panel($atts) {
+	extract( shortcode_atts( array(
+		'login_page_url' => '',
+	), $atts ));
+	if ( !is_user_logged_in() ) {
+		wp_redirect($login_page_url."?ref=".get_permalink()); exit;
+	}
+	$action = get_permalink();
+
+	// current user options
+	global $current_user;
+	get_currentuserinfo();
+	$user_id = $current_user->ID;
+
+	// ACTIONS
+	$ticket = "";
+	// if get new ticket form has been sent
+	if ( array_key_exists('new_ticket_submit',$_POST) ) {
+		$ticket = sstfg_new_ticket($user_id);
+	}
+
+	// if get last ticket form has been sent
+	elseif ( array_key_exists('last_ticket_submit',$_POST) ) {
+		$ticket = sstfg_last_ticket($user_id);
+	}
+
+	// OUTPUT
+	$new_ticket_out = "
+		
+		<form class='row' name='new_ticket_form' action='".$action."' method='post'>
+			<fieldset class='form-group'>
+				<div class='col-sm-offset-3 col-sm-5'>
+					<div class='pull-right'>
+						<input id='new_ticket_submit' class='btn btn-primary' type='submit' value='".__('Get new ticket','sstfg')."' name='new_ticket_submit' />
+					</div>
+    				</div>
+			</fieldset>
+		</form>
+	";
+	$last_ticket_out = "
+		
+		<form class='row' name='last_ticket_form' action='".$action."' method='post'>
+			<fieldset class='form-group'>
+				<div class='col-sm-offset-3 col-sm-5'>
+					<div class='pull-right'>
+						<input id='last_ticket_submit' class='btn btn-primary' type='submit' value='".__('Get the last ticket','sstfg')."' name='last_ticket_submit' />
+					</div>
+    				</div>
+			</fieldset>
+		</form>
+	";
+
+	$output = $ticket.$new_ticket_out.$last_ticket_out;
+	return $output;
+
+} // end show panel to access to ticket
 
 ?>
