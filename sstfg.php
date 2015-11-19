@@ -29,6 +29,8 @@ add_action( 'wp_enqueue_scripts', 'sstfg_register_load_scripts' );
 add_action('set_current_user', 'sstfg_disable_admin_bar');
 // No access to admin panel for subscribers
 add_action( 'admin_init', 'sstfg_redirect_admin' );
+// allow shortcodes in text widgets
+add_filter('widget_text', 'do_shortcode');
 // end ACTIONS and FILTERS
 
 // SHORTCODES
@@ -42,6 +44,8 @@ add_shortcode('sstfg_user_profile', 'sstfg_form_user_edit_profile');
 add_shortcode( 'sstfg_if', 'sstfg_if_subscription_type' );
 //  show panel to access to ticket
 add_shortcode( 'sstfg_tickets_panel', 'sstfg_access_to_tickets_panel' );
+// outputs login or logout links, depending on if user is logged in or not
+add_shortcode( 'sstfg_loginout_link', 'sstfg_loginout' );
 // end SHORTCODES
 
 // PAGE TEMPLATES CREATOR
@@ -315,6 +319,23 @@ function sstfg_blank_login( $user ){
 	}
 
 } // end redirect to right log in page when blank username or password
+
+// outputs login or logout links, depending on if user is logged in or not
+function sstfg_loginout($atts) {
+	extract( shortcode_atts( array(
+		'login_url' => '',
+	), $atts ));
+	if ( is_user_logged_in() ) {
+		$url = wp_logout_url($_SERVER['REQUEST_URI']);
+		$text = __('Se déconnecter','sstfg');
+
+	} else {
+		$url = $login_url;
+		$text = __('Se connecter / S\'inscrire','sstfg');
+
+	}
+	return "<a class='sstfg-loginout' href='".$url."'>".$text."</a>";
+} // end outputs login or logout links, depending on if user is logged in or not
 
 // user register form
 function sstfg_form_user_register($action,$login_url) {
