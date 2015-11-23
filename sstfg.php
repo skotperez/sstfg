@@ -106,7 +106,7 @@ function sstfg_create_post_type() {
 		'publicly_queryable' => true,
 		'exclude_from_search' => true,
 		'menu_position' => 5,
-		//'menu_icon' => get_template_directory_uri() . '/images/quincem-dashboard-pt-badge.png',
+		'menu_icon' => 'dashicons-tickets',
 		'hierarchical' => true, // if true this post type will be as pages
 		'query_var' => true,
 		'supports' => array('title', 'editor','author','page-attributes'),
@@ -261,7 +261,7 @@ function sstfg_form_user_login( $action,$register_url,$feedback_out ) {
 		<div class='row'>
 			<div class='col-md-5 col-md-offset-3'>
 				<div class='pull-right'>
-					".__("If you don't have an account yet:",'sstfg')." <a class='btn btn-success' href='".$register_url."'>".__("Sign up",'sstfg')."</a>
+					".__("If you don't have an account yet:",'sstfg')." <a class='btn btn-success' href='".$register_url."'>".__('Sign up','sstfg')."</a>
 				</div>
 			</div>
 		</div>
@@ -470,12 +470,14 @@ function sstfg_show_user_form( $atts ) {
 } // end show user login/signup form
 
 // subsctription form
-function sstfg_form_user_subscription($action){
+function sstfg_form_user_subscription($action,$newkey){
+	if ( $newkey == 'true' ) { $btn_text = __('Send me a new verification key','sstfg'); }
+	else { $btn_text = __('Subscribe me','sstfg'); }
 	$form_out = "
 		<form class='row' id='suscriptionform' name='suscriptionform' method='post' action='" .$action. "' role='form'>
 			<div class='form-horizontal col-md-12'>
 			<fieldset class='form-group'>
-				<input id='sstfg-subscription' class='btn btn-primary' type='submit' value='".__('Subscribe me','sstfg')."' name='sstfg-subscription' />
+				<input id='sstfg-subscription' class='btn btn-primary' type='submit' value='".$btn_text."' name='sstfg-subscription' />
 			</fieldset>
 			</div>
 		</form>
@@ -484,11 +486,11 @@ function sstfg_form_user_subscription($action){
 } // end subscription form
 
 // verification form
-function sstfg_form_user_verification($action = '',$feedback_out = '',$subscription_url ){
+function sstfg_form_user_verification($action = '',$feedback_out = '',$newkey_url ){
 	$form_out = $feedback_out. "<h2>".__('Verify your account','sstfg')."</h2>
 		<form class='row' id='verificationform' name='verificationform' method='post' action='" .$action. "' role='form'>
 			<div class='form-horizontal col-md-12'>
-			<p>".__('You can enter below the key you have received in your email. Don\'t you have any verification key? Have you lost yours?','sstfg')." <a href='".$subscription_url."'>".__('get another verification key','sstfg')."</a></p>
+			<p>".__('You can enter below the key you have received in your email. Don\'t you have any verification key? Have you lost yours?','sstfg')." <a href='".$newkey_url."'>".__('get another verification key','sstfg')."</a></p>
 			<fieldset class='form-group'>
 				<label for='sstfg-key'>
 					<input id='sstfg-key' class='btn btn-primary' type='text' value='' name='sstfg-key' />
@@ -517,6 +519,7 @@ function sstfg_show_subscription_form($atts) {
 	}
 	$action = get_permalink();
 	$subscription_url = $action."?action=subscription";
+	$newkey_url = $action."?action=subscription&newkey=true";
 	$verification_url = $action."?action=verification";
 	$feedback_out = "";
 	$user_id = get_current_user_id();
@@ -528,7 +531,7 @@ function sstfg_show_subscription_form($atts) {
 	// if subscription form has been sent
 	if ( array_key_exists('action',$_GET) && array_key_exists('sstfg-subscription',$_POST) ) {
 		// generate code and save it in db
-		$key = wp_generate_password(18,true,true);
+		$key = wp_generate_password(18);
 		update_user_meta( $user_id, 'sstfg_subscription', $key );
 		// send code
 		$to = $user_data->user_email;
@@ -569,9 +572,10 @@ __('Welcome to SSTFG.','sstfg')
 		if ( array_key_exists('key',$_GET) ) { $mail_key = sanitize_text_field($_GET['key']); }
 		elseif ( array_key_exists('sstfg-key',$_POST) ) { $mail_key = sanitize_text_field($_POST['sstfg-key']); }
 		else { $mail_key = ""; }
-	echo $mail_key;
+//	echo $mail_key;
 		if ( $mail_key === $subscription && $mail_key != '' ) {
 			update_user_meta($user_id,'sstfg_subscription','1');
+			update_user_meta($user_id,'sstfg_current_sequence','decouverte');
 			foreach ( $extra_fields as $ef ) {
 				update_user_meta($user_id,$ef['label'],$ef['initial']);
 			}
@@ -586,10 +590,12 @@ __('Welcome to SSTFG.','sstfg')
 
 	// OUTPUTS
 	if ( $subscription == '' || array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'subscription' ) { // user not subscribed
-		return sstfg_form_user_subscription($subscription_url);
+		if ( array_key_exists('newkey',$_GET) ) { $newkey = sanitize_text_field($_GET['newkey']); }
+		else { $newkey = "false"; }
+		return sstfg_form_user_subscription($subscription_url,$newkey);
 
 	} elseif ( array_key_exists('action',$_GET) && sanitize_text_field($_GET['action']) == 'verification' || $subscription != '' && $subscription != '1' && $subscription != '2' ) { // user subscribed but not verified
-		return sstfg_form_user_verification($verification_url,$feedback_out,$subscription_url);
+		return sstfg_form_user_verification($verification_url,$feedback_out,$newkey_url);
 
 	} elseif ( $subscription == '1' || $subscription == '2' ) { // user subscribed and verified
 		wp_redirect($redirect_url);
@@ -773,16 +779,21 @@ function sstfg_form_user_edit_profile($atts){
 
 // adds content to a page depending on subscription type
 function sstfg_if_subscription_type( $atts, $content = null ) {
-	if ( !is_user_logged_in() ) return;
+	if ( !is_user_logged_in() ) { $user_subscription = 0; }
+	else {
+		$user_id = get_current_user_id();
+		$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
+	}
 
 	extract( shortcode_atts( array(
 		'subscription' => '',
 	), $atts ));
-	$user_id = get_current_user_id();
-	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
-	if ( $subscription == $user_subscription )
-		return '<div>' . $content . '</div>';
-	else return;
+	$subscriptions = explode(",",$subscription);
+	foreach ( $subscriptions as $s ) {
+		if ( $s == $user_subscription )
+			return '<div>' . $content . '</div>';
+	}
+	return;
 } // end adds content to a page depending on subscription type
 
 // get new ticket
@@ -845,7 +856,7 @@ function sstfg_new_ticket($user_id) {
 			$ticket_out = "<p class='alert alert-danger' role='alert'>".__('Something was wrong. We cannot serve you a new ticket.','sstfg')."</p>";
 		}
 	
-		if ( $count_all_tickets == $count_user_tickets && $user_mode == 'menu_order' ) {
+		if ( $count_all_tickets == $count_user_tickets && $count_all_tickets != 0 && $user_mode == 'menu_order' ) {
 			update_user_meta($user_id,'sstfg_subscription', '1.5');
 			$ticket_out .= "<p><small>".__('This is the last ticket of the Decouverte sequence: you have finished it. Now you are ready to subscribe to the complete Small Steps To Feel Good sequence. You can do this from your User panel','sstfg')."</small></p>";
 		}
