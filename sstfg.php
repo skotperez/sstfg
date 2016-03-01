@@ -645,7 +645,7 @@ function sstfg_form_user_edit_profile($atts){
 			$feedback_type = "danger"; $feedback_text = __('<strong>Email is a required field</strong>.','sstfg');
 
 		} elseif ( $pass != '' && $pass != $pass2 ) {
-			$feedback_type = "danger"; $feedback_text = __('<strong>Password dosn\'t match</strong>. Try it again.','sstfg');
+			$feedback_type = "danger"; $feedback_text = __('<strong>Password doesn\'t match</strong>. Try it again.','sstfg');
 
 		} else { $feedback_type = ''; }
 
