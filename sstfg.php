@@ -974,4 +974,37 @@ function sstfg_access_to_tickets_panel($atts) {
 
 } // end show panel to access to ticket
 
+add_action('save_post', 'sstfg_ticket_file_move_s2member',9999);
+function sstfg_ticket_file_move_s2member() {
+	if ( !is_plugin_active('s2member/s2member.php') )
+		return;
+
+	global $post;
+	if ( $post ) {
+
+	// If this is just a revision, don't continue
+	if ( wp_is_post_revision( $post->ID ) )
+		return;
+
+	if ( $post->post_type == 'billet' && $post->post_status == 'publish' ) {
+
+		$pdfs = get_attached_media( 'application/pdf', $post->ID );
+		if ( count($pdfs) >= 1 ) {
+			foreach ( $pdfs as $p ) {
+				$name = $p->post_name.".pdf";
+				$pdf_url = $p->guid;
+			}
+			$docroot = $_SERVER['DOCUMENT_ROOT'];
+			//$upload_dir = wp_upload_dir();
+			$pdf_rel = str_replace(get_bloginfo('url'), '', $pdf_url);
+			//$file = $upload_dir['basedir'];
+			$old = $docroot.$pdf_rel;
+			$new = $docroot."/wp-content/plugins/s2member-files/access-s2member-ccap-sstfg/".$name;
+			//$new = $_SERVER['DOCUMENT_ROOT']."/wp-content/plugins/s2member-files/access-s2member-ccap-sstfg/1.pdf";
+			update_post_meta($post->ID,'_sstfg_protected_pdf',$new);
+			copy($old, $new) or die("Unable to copy $old to $new.");
+		}
+	}	
+	}
+}
 ?>
