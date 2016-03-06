@@ -174,10 +174,18 @@ function sstfg_rewrite_flush() {
 // sstfg extra fields in user profile
 $extra_fields = array(
 	array(
-		'name' => __('Mobile phone', 'sstfg'),
-		'label' => 'user_mobile',
+		'name' => __('Subscription', 'sstfg'),
+		'label' => 'sstfg_subscription',
 		'type' => 'input',
-		'initial' => ''
+		'initial' => '1',
+		'show_in_frontend' => '0'
+	),
+	array(
+		'name' => __('Current sequence', 'sstfg'),
+		'label' => 'sstfg_current_sequence',
+		'type' => 'input',
+		'initial' => 'Decouverte',
+		'show_in_frontend' => '2'
 	),
 	array(
 		'name' => __('Ticket Access mode', 'sstfg'),
@@ -187,7 +195,8 @@ $extra_fields = array(
 			'manual' => __('Manual', 'sstfg'),
 			'automatic' => __('Automatic', 'sstfg')
 		),
-		'initial' => 'manual'
+		'initial' => 'manual',
+		'show_in_frontend' => '1'
 	),
 	array(
 		'name' => __('Ticket access regularity', 'sstfg'),
@@ -197,7 +206,8 @@ $extra_fields = array(
 			'once' => __('Once a week', 'sstfg'),
 			'twice' => __('Twice a week', 'sstfg')
 		),
-		'initial' => ''
+		'initial' => '',
+		'show_in_frontend' => '1'
 	),
 	array(
 		'name' => __('Ticket order', 'sstfg'),
@@ -207,13 +217,22 @@ $extra_fields = array(
 			'rand' => __('Random', 'sstfg'),
 			'menu_order' => __('Sequential', 'sstfg')
 		),
-		'initial' => 'menu_order'
+		'initial' => 'menu_order',
+		'show_in_frontend' => '1'
 	),
 	array(
 		'name' => __('Send me the tickets to my email address', 'sstfg'),
 		'label' => 'sstfg_ticket_send_to_mail',
 		'type' => 'checkbox',
-		'initial' => ''
+		'initial' => '',
+		'show_in_frontend' => '1'
+	),
+	array(
+		'name' => __('Gotten Tickets', 'sstfg'),
+		'label' => 'sstfg_tickets',
+		'type' => 'input',
+		'initial' => '',
+		'show_in_frontend' => '0'
 	)
 );
 
@@ -223,7 +242,6 @@ function sstfg_extra_user_profile_fields( $user ) {
 	foreach ( $extra_fields as $ef ) {
 		$user_fields_method[$ef['label']] = $ef['name'];
 	}
-	$user_fields_method['sstfg_current_sequence'] = __('Current sequence','sstfg');
 	return $user_fields_method;
 
 } // end Register new user contact Methods: custom profile fields
@@ -634,48 +652,49 @@ function sstfg_form_user_edit_profile($atts){
 	if ( array_key_exists('wp-submit',$_POST) ) {
 	
 		$email = sanitize_text_field($_POST['user_email']);
-		$pass = sanitize_text_field($_POST['user_pass']);
-		$pass2 = sanitize_text_field($_POST['user_pass_confirm']);
+//		$pass = sanitize_text_field($_POST['user_pass']);
+//		$pass2 = sanitize_text_field($_POST['user_pass_confirm']);
 
 		foreach ( $extra_fields as $ef ) {
-			$$ef['label'] = sanitize_text_field($_POST[$ef['label']]);
-			$fields_to_update[$ef['label']] = $$ef['label'];
+			if ( $ef['show_in_frontend'] == '1' ) {
+				$$ef['label'] = sanitize_text_field($_POST[$ef['label']]);
+				$fields_to_update[$ef['label']] = $$ef['label'];
+			}
 		}
 
-		if ( email_exists($email) && $email != $current_user->user_email ) {
-			$feedback_type = "danger"; $feedback_text = __('<strong>This email address is already in use</strong>. Try another one.','sstfg');
+//		if ( email_exists($email) && $email != $current_user->user_email ) {
+//			$feedback_type = "danger"; $feedback_text = __('<strong>This email address is already in use</strong>. Try another one.','sstfg');
 
-		} elseif ( $email == '' ) {
-			$feedback_type = "danger"; $feedback_text = __('<strong>Email is a required field</strong>.','sstfg');
+//		} elseif ( $email == '' ) {
+//			$feedback_type = "danger"; $feedback_text = __('<strong>Email is a required field</strong>.','sstfg');
 
-		} elseif ( $pass != '' && $pass != $pass2 ) {
-			$feedback_type = "danger"; $feedback_text = __('<strong>Password doesn\'t match</strong>. Try it again.','sstfg');
+//		} elseif ( $pass != '' && $pass != $pass2 ) {
+//			$feedback_type = "danger"; $feedback_text = __('<strong>Password doesn\'t match</strong>. Try it again.','sstfg');
 
-		} else { $feedback_type = ''; }
+//		} else { $feedback_type = ''; }
 
-		if ( $feedback_type != '' ) {
-			$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>";
+//		if ( $feedback_type != '' ) {
+//			$feedback_out = "<div class='alert alert-".$feedback_type."' role='alert'>".$feedback_text."</div>";
 
-		} else {
+//		} else {
 			// current user data
-			if ( $pass != '' ) { wp_set_password( $pass, $user_id ); }
+//			if ( $pass != '' ) { wp_set_password( $pass, $user_id ); }
 			$fields_to_update['ID'] = $user_id;
-			$fields_to_update['user_email'] = $email;
+//			$fields_to_update['user_email'] = $email;
 			$updated_id = wp_update_user( $fields_to_update );
 			wp_redirect(get_permalink()."?edit_profile=success");
 			exit;
 
-		}
+//		}
 
 	} // end if edit profile form has been sent
 
 	else {
 		if ( array_key_exists('edit_profile',$_GET) && sanitize_text_field($_GET['edit_profile']) == 'success' ) {
-			$feedback_type = "success"; $feedback_text = __('Your profile has been updated.','sstfg');
+			$feedback_type = "success"; $feedback_text = __('Settings for your SSTFG subscription has been updated.','sstfg');
 
-		} 
-		elseif ( array_key_exists('verification',$_GET) && sanitize_text_field($_GET['verification']) == 'success' ) {
-			$feedback_type = "success"; $feedback_text = __('Your email has been verified.','sstfg');
+//		elseif ( array_key_exists('verification',$_GET) && sanitize_text_field($_GET['verification']) == 'success' ) {
+//			$feedback_type = "success"; $feedback_text = __('Your email has been verified.','sstfg');
 
 		} else { $feedback_type = ''; }
 
@@ -693,47 +712,50 @@ function sstfg_form_user_edit_profile($atts){
 
 	$extra_output = "";
 	foreach ( $extra_fields as $ef ) {
-		if ( $ef['type'] == 'input' ) {
-			$extra_output .= "
-				<fieldset class='form-group'>
-					<label for='".$ef['label']."' class='col-sm-3 control-label'>".$ef['name']."</label>
-					<div class='col-sm-5'>
-						<input id='".$ef['label']."' class='form-control' type='text' value='".$$ef['label']."' name='".$ef['label']."' />
-					</div>
-				</fieldset>
-			";
-
-		} elseif ( $ef['type'] == 'radio' ) {
-			$options_out = "";
-			foreach ( $ef['options'] as $k => $v ) {
-				if ( $user_subscription == '1' && $ef['label'] == 'sstfg_ticket_order' && $k == 'rand' ) {
-					// if user subscription is decouverte then deactivate random mode
-					$disabled_out = " disabled"; $help_out = "<p class='help-block col-sm-4'><small>".__('Random mode is not available in this type of subscription.')."</small></p>";} else { $disabled_out = ""; }
-				if ( $$ef['label'] == $k ) { $checked_out = " checked"; } else { $checked_out = ''; }
-				$options_out .= "<label><input type='radio' name='".$ef['label']."' id='".$k."' value='".$k."'".$checked_out.$disabled_out."> ".$v."</label>";
+		if ( $ef['show_in_frontend'] != '0' ) {
+			if ( $ef['show_in_frontend'] == '2' ) { $disabled = " disabled"; } else { $disabled = ""; }
+			if ( $ef['type'] == 'input' ) {
+				$extra_output .= "
+					<fieldset class='form-group'>
+						<label for='".$ef['label']."' class='col-sm-3 control-label'>".$ef['name']."</label>
+						<div class='col-sm-5'>
+							<input id='".$ef['label']."' class='form-control' type='text' value='".$$ef['label']."' name='".$ef['label']."'".$disabled." />
+						</div>
+					</fieldset>
+				";
+	
+			} elseif ( $ef['type'] == 'radio' ) {
+				$options_out = "";
+				foreach ( $ef['options'] as $k => $v ) {
+					if ( $user_subscription == '1' && $ef['label'] == 'sstfg_ticket_order' && $k == 'rand' ) {
+						// if user subscription is decouverte then deactivate random mode
+						$disabled_out = " disabled"; $help_out = "<p class='help-block col-sm-4'><small>".__('Random mode is not available in this type of subscription.')."</small></p>";} else { $disabled_out = ""; }
+					if ( $$ef['label'] == $k ) { $checked_out = " checked"; } else { $checked_out = ''; }
+					$options_out .= "<label><input type='radio' name='".$ef['label']."' id='".$k."' value='".$k."'".$checked_out.$disabled_out.$disabled." /> ".$v."</label>";
+				}
+				if ( !isset($help_out) ) { $help_out = ""; }
+				$extra_output .= "
+					<fieldset class='form-group ".$ef['label']."'>
+						".$ef['name']."
+						<div class='radio'>".$options_out."</div>
+						".$help_out."
+					</fieldset>
+				";
+				unset($help_out);
+	
+			} elseif ( $ef['type'] == 'checkbox' ) {
+				if ( $$ef['label'] != '' ) { $checked_out = " checked"; } else { $checked_out = ''; }
+				$extra_output .= "
+					<fieldset class='form-group ".$ef['label']."'>
+						<div class='col-sm-offset-3 col-sm-3 checkbox'>
+							<label>
+								<input type='checkbox' name='".$ef['label']."' id='".$ef['label']."' value='please'".$checked_out.$disabled." /> ".$ef['name']."
+							</label>
+						</div>
+					</fieldset>
+				";
+	
 			}
-			if ( !isset($help_out) ) { $help_out = ""; }
-			$extra_output .= "
-				<fieldset class='form-group ".$ef['label']."'>
-					".$ef['name']."
-					<div class='radio'>".$options_out."</div>
-					".$help_out."
-				</fieldset>
-			";
-			unset($help_out);
-
-		} elseif ( $ef['type'] == 'checkbox' ) {
-			if ( $$ef['label'] != '' ) { $checked_out = " checked"; } else { $checked_out = ''; }
-			$extra_output .= "
-				<fieldset class='form-group ".$ef['label']."'>
-					<div class='col-sm-offset-3 col-sm-3 checkbox'>
-						<label>
-							<input type='checkbox' name='".$ef['label']."' id='".$ef['label']."' value='please'".$checked_out."> ".$ef['name']."
-						</label>
-					</div>
-				</fieldset>
-			";
-
 		}
 	}
 
@@ -750,20 +772,7 @@ function sstfg_form_user_edit_profile($atts){
 		<fieldset class='form-group'>
 			<label for='user_email' class='col-sm-3 control-label'>".__('Email','sstfg').$req_class."</label>
 			<div class='col-sm-5'>
-				<input id='user_email' class='form-control' type='text' value='".$email."' name='user_email' />
-			</div>
-		</fieldset>
-		<fieldset class='form-group'>
-			<label for='user_pass' class='col-sm-3 control-label'>".__('New password','sstfg')."</label>
-			<div class='col-sm-5'>
-				<input id='user_pass' class='form-control' type='password' size='20' value='' name='user_pass' />
-			</div>
-			<p class='help-block col-sm-4'><small>".__('<strong>If you want to change your password</strong>, write the new one here. Otherwise, leave this field empty.','sstfg')."</small></p>
-		</fieldset>
-		<fieldset class='form-group'>
-			<label for='user_pass_confirm' class='col-sm-3 control-label'>".__('Confirm new password','sstfg')."</label>
-			<div class='col-sm-5'>
-				<input id='user_pass_confirm' class='form-control' type='password' size='20' value='' name='user_pass_confirm' />
+				<input id='user_email' class='form-control' type='text' value='".$email."' name='user_email' disabled='disabled' />
 			</div>
 		</fieldset>
 		".$extra_output."
@@ -1022,13 +1031,16 @@ function sstfg_ticket_file_move_s2member() {
 add_action('woocommerce_order_status_completed', 'sstfg_add_cap_to_customer', 10, 1);
 //add_action('woocommerce_payment_complete', 'sstfg_add_cap_to_customer', 10, 1);
 function sstfg_add_cap_to_customer($order_id) {
+	global $extra_fields;
 	$order = new WC_Order( $order_id );
 	$customer_id = (int)$order->user_id;
 	$items = $order->get_items();
 	foreach ($items as $item) {
 		if ($item['product_id']== SSTFG_WC_PRODUCT_ID ) {
-			//update_user_meta( $customer_id,'sstfg_member','1');
-			update_user_meta( $customer_id,'sstfg_subscription','1');
+			foreach ( $extra_fields as $ef ) {
+				$ef_value = get_user_meta( $customer_id,$ef['label'],true);
+				if ( $ef_value != '' ) { update_user_meta( $customer_id,$ef['label'],$ef['initial'] ); }
+			}
 		}
 	}
 }
