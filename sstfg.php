@@ -8,6 +8,9 @@ Author URI: http://montera34.com
 License: GPLv3
 */
 
+// VARS
+require_once('sstfg-config.php');
+
 // ACTIONS and FILTERS
 // load plugin text domain for string translations
 add_action( 'plugins_loaded', 'sstfg_load_textdomain' );
@@ -608,7 +611,7 @@ __('Welcome to SSTFG.','sstfg')
 // edit user profile form
 function sstfg_form_user_edit_profile($atts){
 	extract( shortcode_atts( array(
-		'login_page_url' => '',
+		'login_page_url' => SSTFG_LOGIN_URL,
 	), $atts ));
 	if ( !is_user_logged_in() ) {
 		wp_redirect($login_page_url); exit;
@@ -620,7 +623,8 @@ function sstfg_form_user_edit_profile($atts){
 	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
 
 	if ( $user_subscription != '1' && $user_subscription != '1.5' && $user_subscription != '2' ) {
-		wp_redirect($login_page_url."?action=subscription"); exit;
+		//wp_redirect($login_page_url."?action=subscription"); exit;
+		wp_redirect($login_page_url); exit;
 	}
 
 	$action = get_permalink();
@@ -847,7 +851,12 @@ function sstfg_new_ticket($user_id) {
 				$count_user_tickets = count($user_tickets);
 				$pdfs = get_attached_media( 'application/pdf', $t->ID );
 			}
-			foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
+			if ( is_plugin_active('s2member/s2member.php') ) {
+				$name == get_post_meta($post->ID,'_sstfg_protected_pdf',true);
+				$pdf_url = "/?s2member_file_download=access-s2member-ccap-sstfg/".$name;
+			} else {
+				foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
+			}	
 			$ticket_out = "
 				<p>".__('Here you have your new ticket:','sstfg')."</p>
 				<p><strong>".$t->post_title."</strong>: <a href='".$pdf_url."' target='_blank'>".__('Download it (PDF)','sstfg')."</a></p>
@@ -913,7 +922,7 @@ function sstfg_last_ticket($user_id) {
 // show panel to access to ticket
 function sstfg_access_to_tickets_panel($atts) {
 	extract( shortcode_atts( array(
-		'login_page_url' => '',
+		'login_page_url' => SSTFG_LOGIN_URL,
 	), $atts ));
 	if ( !is_user_logged_in() ) {
 		wp_redirect($login_page_url."?ref=".get_permalink()); exit;
@@ -926,7 +935,7 @@ function sstfg_access_to_tickets_panel($atts) {
 	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
 
 	if ( $user_subscription != '1' && $user_subscription != '1.5' && $user_subscription != '2' ) {
-		wp_redirect($login_page_url."?action=subscription"); exit;
+		wp_redirect(SSTFG_WC_PRODUCT_URL); exit;
 	}
 
 	$action = get_permalink();
@@ -976,6 +985,7 @@ function sstfg_access_to_tickets_panel($atts) {
 
 add_action('save_post', 'sstfg_ticket_file_move_s2member',9999);
 function sstfg_ticket_file_move_s2member() {
+	include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 	if ( !is_plugin_active('s2member/s2member.php') )
 		return;
 
@@ -994,17 +1004,33 @@ function sstfg_ticket_file_move_s2member() {
 				$name = $p->post_name.".pdf";
 				$pdf_url = $p->guid;
 			}
+			if ( $name == get_post_meta($post->ID,'_sstfg_protected_pdf',true) )
+				return;
 			$docroot = $_SERVER['DOCUMENT_ROOT'];
 			//$upload_dir = wp_upload_dir();
 			$pdf_rel = str_replace(get_bloginfo('url'), '', $pdf_url);
 			//$file = $upload_dir['basedir'];
 			$old = $docroot.$pdf_rel;
 			$new = $docroot."/wp-content/plugins/s2member-files/access-s2member-ccap-sstfg/".$name;
-			//$new = $_SERVER['DOCUMENT_ROOT']."/wp-content/plugins/s2member-files/access-s2member-ccap-sstfg/1.pdf";
-			update_post_meta($post->ID,'_sstfg_protected_pdf',$new);
+			update_post_meta($post->ID,'_sstfg_protected_pdf',$name);
 			copy($old, $new) or die("Unable to copy $old to $new.");
 		}
 	}	
 	}
 }
+
+add_action('woocommerce_order_status_completed', 'sstfg_add_cap_to_customer', 10, 1);
+//add_action('woocommerce_payment_complete', 'sstfg_add_cap_to_customer', 10, 1);
+function sstfg_add_cap_to_customer($order_id) {
+	$order = new WC_Order( $order_id );
+	$customer_id = (int)$order->user_id;
+	$items = $order->get_items();
+	foreach ($items as $item) {
+		if ($item['product_id']== SSTFG_WC_PRODUCT_ID ) {
+			//update_user_meta( $customer_id,'sstfg_member','1');
+			update_user_meta( $customer_id,'sstfg_subscription','1');
+		}
+	}
+}
+
 ?>
