@@ -20,8 +20,15 @@ add_action(  'init', 'sstfg_create_post_type', 0 );
 add_action( 'init', 'sstfg_build_taxonomies', 0 );
 // rewrite flush rules
 register_activation_hook( __FILE__, 'sstfg_rewrite_flush' );
+
+// Adds custom metaboxes to billet post type
+add_action("add_meta_boxes_billet", "sstfg_billet_metaboxes");
+add_action("save_post", "save_sstfg_billet_metaboxes", 10, 3);
+
 // Register new user contact Methods: custom profile fields
 add_filter( 'user_contactmethods', 'sstfg_extra_user_profile_fields' );
+
+
 // hook failed login
 add_action( 'wp_login_failed', 'sstfg_login_failed' );
 // redirect to right log in page when blank username or password
@@ -170,6 +177,55 @@ function sstfg_rewrite_flush() {
 	sstfg_build_taxonomies();
 	flush_rewrite_rules();
 }
+
+// Adds custom metaboxes to billet post type
+function sstfg_billet_metaboxes_callback($object) {
+	$terms = get_terms('sequence-composee','hide_empty=0');
+	if ( !is_array($terms) )
+		return;
+
+	wp_nonce_field(basename(__FILE__), "sstfg-billet-order-nonce"); 
+	foreach ( $terms as $t ) {
+		$cf_label = sprintf(__("Order in sequence %s","sstfg"),$t->name);
+		$cf_id = "sstfg_billet_order_".$t->slug; ?>
+			<div>
+				<label for="<?php echo $cf_id; ?>"><?php echo $cf_label; ?></label>
+				<input name="<?php echo $cf_id; ?>" type="text" value="<?php echo get_post_meta($object->ID, $cf_id, true); ?>" />
+			</div>
+	<?php }
+}
+
+function sstfg_billet_metaboxes() {
+	add_meta_box('sstfg_billet_orders', __("Order of this ticket for each sequence","sstfg"), "sstfg_billet_metaboxes_callback", "billet", "normal", "high");
+}
+
+function save_sstfg_billet_metaboxes($post_id, $post, $update) {
+	if ( !isset($_POST["sstfg-billet-order-nonce"]) || !wp_verify_nonce($_POST["sstfg-billet-order-nonce"], basename(__FILE__)) )
+		return $post_id;
+	if( !current_user_can("edit_post", $post_id))
+		return $post_id;
+
+	if(defined("DOING_AUTOSAVE") && DOING_AUTOSAVE)
+		return $post_id;
+
+	if('billet' != $post->post_type )
+		return $post_id;
+
+	$terms = get_terms('sequence-composee','hide_empty=0');
+	if ( !is_array($terms) )
+		return;
+
+	foreach ( $terms as $t ) {
+		$cf_label = sprintf(__("Order in sequence %s","sstfg"),$t->name);
+		$cf_id = "sstfg_billet_order_".$t->slug; 
+
+		if( isset($_POST[$cf_id]) ) {
+			$cf_value = sanitize_text_field($_POST[$cf_id]);
+			update_post_meta($post_id, $cf_id, $cf_value);
+		}
+	}   
+}
+// END Adds custom metaboxes to billet post type
 
 // sstfg extra fields in user profile
 $extra_fields = array(
