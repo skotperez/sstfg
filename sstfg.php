@@ -911,12 +911,14 @@ function sstfg_if_subscription_type( $atts, $content = null ) {
 // get ticket
 function sstfg_get_ticket($user_id,$new_or_last) {
 	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
-	$user_sequence = get_user_meta( $user_id,'sstfg_current_sequence', true );
+	$user_sequence_name = get_user_meta( $user_id,'sstfg_current_sequence', true );
+		$user_sequence_data = get_term_by( 'name',$user_sequence_name,'sequence-composee','ARRAY_A' );
+		$user_sequence = $user_sequence_data['slug'];
 	$user_mode = get_user_meta( $user_id,'sstfg_ticket_order', true );
+		if ( $user_mode == 'menu_order' ) { $user_mode = "meta_value_num menu_order"; }
 	$user_tickets = get_user_meta( $user_id,'sstfg_tickets', true );
 	// LAST
 	if ( $new_or_last == 'last' ) {
-//	$user_tickets = get_user_meta( $user_id,'sstfg_tickets', true );
 		if (is_array($user_tickets)) {
 			$last_ticket = end($user_tickets);
 			$args = array(
@@ -924,30 +926,14 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 				'posts_per_page' => '1',
 				'p' => $last_ticket['ID']
 			);
-//		$tickets = get_posts($args);
-//		foreach ( $tickets as $t ) {
-//			$pdfs = get_attached_media( 'application/pdf', $t->ID );
-//		}
-//		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-//		if ( is_plugin_active('s2member/s2member.php') ) {
-//			$name = get_post_meta($t->ID,'_sstfg_protected_pdf',true);
-//			$pdf_url = "/?s2member_file_download=access-s2member-ccap-sstfg/".$name;
-//		} else {
-//			foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
-//		}
-//		$ticket_out = "
-//			<p>".__('Here you have your last ticket:','sstfg')."</p>
-//			<p><strong>".$t->post_title."</strong>: <a href='".$pdf_url."' target='_blank'>".__('Download it (PDF)','sstfg')."</a></p>
-//			";
-//	} else {
-//		$ticket_out = "<p class='alert alert-warning' role='alert'>".__('It seems that you still don\'t have any tickets.','sstfg')."</p>";
 		}
-	// end LAST
+	}
 
-	} elseif ( $new_or_last == 'new' ) {
-
+	// NEW
+	elseif ( $new_or_last == 'new' ) {
 		if ( $user_subscription == '1.5' )
-			return "<p class='alert alert-info' role='alert'>".__('You have finish the Decouverte sequence: to get more tickets <a href="/user-panel">you must change your subscription</a>.','sstfg')."</p>";
+			return;
+//			return "<p class='alert alert-info' role='alert'>".__('You have finish the Decouverte sequence: to get more tickets <a href="/user-panel">you must change your subscription</a>.','sstfg')."</p>";
 
 		if (is_array($user_tickets)) {
 			foreach ( $user_tickets as $ut ) { $user_tickets_id[] = $ut['ID']; }
@@ -960,7 +946,7 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 			'tax_query' => array(
 				array(
 					'taxonomy' => 'sequence-composee',
-					'field'    => 'name',
+					'field'    => 'slug',
 					'terms'    => $user_sequence,
 				),
 			)
@@ -969,7 +955,6 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 		$count_all_tickets = count($tickets);
 
 		if ( $user_subscription == '1' || $user_subscription == '2' ) {
-//echo $user_subscription;
 			// get ticket to serve now
 			$args = array(
 				'post_type' => 'billet',
@@ -979,31 +964,18 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 				'tax_query' => array(
 					array(
 						'taxonomy' => 'sequence-composee',
-						'field'    => 'name',
+						'field'    => 'slug',
 						'terms'    => $user_sequence,
 					),
 				)
 			);
-			if ( $user_mode == 'menu_order' ) { $args['post__not_in'] = $user_tickets_id; }
-//echo "HAR!";
-//print_r($args);
-//		} elseif ( $user_subscription == '2' ) {
-//			$args = array(
-//				'post_type' => 'billet',
-//				'posts_per_page' => '1',
-//				'orderby' => $user_mode,
-//				'order' => 'ASC',
-//				'tax_query' => array(
-//					array(
-//						'taxonomy' => 'sequence-composee',
-//						'field'    => 'slug',
-//						'terms'    => $user_sequence,
-//					),
-//				),
-//			);
-//			if ( $user_mode == 'menu_order' ) { $args['post__not_in'] = $user_tickets_id; }
+			if ( $user_mode == 'meta_value_num menu_order' ) {
+				$args['post__not_in'] = $user_tickets_id;
+				$args['meta_key'] = 'sstfg_billet_order_'.$user_sequence;
+			}
+
 		}
-	} // end new or last
+	} // end NEW or LAST
 
 	$tickets = get_posts($args);
 	$count = count($tickets);
@@ -1021,11 +993,12 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 			$pdfs = get_attached_media( 'application/pdf', $t->ID );
 		}	
 		// upgrade to subscription 1.5 if last decouverte ticket
-		if ( $user_subscription == '1' && $count_all_tickets == $count_user_tickets && $count_all_tickets != 0 && $user_mode == 'menu_order' )
+		if ( $user_subscription == '1' && $count_all_tickets == $count_user_tickets && $count_all_tickets != 0 && $user_mode == 'meta_value_num menu_order' )
 			update_user_meta($user_id,'sstfg_subscription', '1.5');
-//			wp_redirect(get_permalink()); exit;
-//			$ticket_out .= "<p class='alert alert-info' role='alert'><small>".__('This is the last ticket of the Decouverte sequence: you have finished it. Now you are ready to subscribe to the complete Small Steps To Feel Good sequence. You can do this from your User panel','sstfg')."</small></p>";
-//		}
+		// end approfondissement
+		if ( $user_subscription == '2' && $count_all_tickets == $count_user_tickets && $count_all_tickets != 0 && $user_mode == 'meta_value_num menu_order' )
+			update_user_meta($user_id,'sstfg_subscription', '2.5');
+
 		// build download link
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		if ( is_plugin_active('s2member/s2member.php') ) {
@@ -1037,15 +1010,13 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 		// OUTPUT
 		$ticket_out = "
 			<p>".__('Here you have your ticket:','sstfg')."</p>
-			<p><strong>".$t->post_title."</strong>: <a href='".$pdf_url."' target='_blank'>".__('Download it (PDF)','sstfg')."</a></p>
+			<p><strong>".$t->post_title."</strong>: <a class='sbutton square noshadow medium mainthemebgcolor' href='".$pdf_url."' target='_blank'><i class='icon-download'></i> ".__('Download it (PDF)','sstfg')."</a></p>
 		";
 
 	} elseif ( $new_or_last == 'last' && $count != 1 && !is_array($user_tickets) ) {
-//		$count_user_tickets = "";
 		$ticket_out = "<p class='alert alert-warning' role='alert'>".__('It seems that you still don\'t have any tickets.','sstfg')."</p>";
 
 	} else {
-//		$count_user_tickets = "";
 		$ticket_out = "<p class='alert alert-danger' role='alert'>".__('Something was wrong. We cannot serve you a new ticket.','sstfg')."</p>";
 	}
 	return $ticket_out;
