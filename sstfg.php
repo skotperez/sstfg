@@ -852,17 +852,52 @@ function sstfg_if_subscription_type( $atts, $content = null ) {
 	return;
 } // end adds content to a page depending on subscription type
 
-// get new ticket
-function sstfg_new_ticket($user_id) {
+// get ticket
+function sstfg_get_ticket($user_id,$new_or_last) {
 	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
 	$user_sequence = get_user_meta( $user_id,'sstfg_current_sequence', true );
 	$user_mode = get_user_meta( $user_id,'sstfg_ticket_order', true );
 	$user_tickets = get_user_meta( $user_id,'sstfg_tickets', true );
-	if (is_array($user_tickets)) {
-		foreach ( $user_tickets as $ut ) { $user_tickets_id[] = $ut['ID']; }
-	} else { $user_tickets_id = ""; }
+	// LAST
+	if ( $new_or_last == 'last' ) {
+//	$user_tickets = get_user_meta( $user_id,'sstfg_tickets', true );
+		if (is_array($user_tickets)) {
+			$last_ticket = end($user_tickets);
+			$args = array(
+				'post_type' => 'billet',
+				'posts_per_page' => '1',
+				'p' => $last_ticket['ID']
+			);
+//		$tickets = get_posts($args);
+//		foreach ( $tickets as $t ) {
+//			$pdfs = get_attached_media( 'application/pdf', $t->ID );
+//		}
+//		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+//		if ( is_plugin_active('s2member/s2member.php') ) {
+//			$name = get_post_meta($t->ID,'_sstfg_protected_pdf',true);
+//			$pdf_url = "/?s2member_file_download=access-s2member-ccap-sstfg/".$name;
+//		} else {
+//			foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
+//		}
+//		$ticket_out = "
+//			<p>".__('Here you have your last ticket:','sstfg')."</p>
+//			<p><strong>".$t->post_title."</strong>: <a href='".$pdf_url."' target='_blank'>".__('Download it (PDF)','sstfg')."</a></p>
+//			";
+//	} else {
+//		$ticket_out = "<p class='alert alert-warning' role='alert'>".__('It seems that you still don\'t have any tickets.','sstfg')."</p>";
+		}
+	// end LAST
 
-	if ( $user_subscription == '1' ) {
+	} elseif ( $new_or_last == 'new' ) {
+
+		if ( $user_subscription == '1.5' )
+			return "<p class='alert alert-info' role='alert'>".__('You have finish the Decouverte sequence: to get more tickets <a href="/user-panel">you must change your subscription</a>.','sstfg')."</p>";
+
+		if (is_array($user_tickets)) {
+			foreach ( $user_tickets as $ut ) { $user_tickets_id[] = $ut['ID']; }
+		} else { $user_tickets_id = ""; }
+
+		// get all tickets in current phase
 		$args = array(
 			'post_type' => 'billet',
 			'posts_per_page' => '-1',
@@ -877,6 +912,115 @@ function sstfg_new_ticket($user_id) {
 		$tickets = get_posts($args);
 		$count_all_tickets = count($tickets);
 
+		if ( $user_subscription == '1' || $user_subscription == '2' ) {
+//echo $user_subscription;
+			// get ticket to serve now
+			$args = array(
+				'post_type' => 'billet',
+				'posts_per_page' => '1',
+				'orderby' => $user_mode,
+				'order' => 'ASC',
+				'tax_query' => array(
+					array(
+						'taxonomy' => 'sequence-composee',
+						'field'    => 'name',
+						'terms'    => $user_sequence,
+					),
+				)
+			);
+			if ( $user_mode == 'menu_order' ) { $args['post__not_in'] = $user_tickets_id; }
+//echo "HAR!";
+//print_r($args);
+//		} elseif ( $user_subscription == '2' ) {
+//			$args = array(
+//				'post_type' => 'billet',
+//				'posts_per_page' => '1',
+//				'orderby' => $user_mode,
+//				'order' => 'ASC',
+//				'tax_query' => array(
+//					array(
+//						'taxonomy' => 'sequence-composee',
+//						'field'    => 'slug',
+//						'terms'    => $user_sequence,
+//					),
+//				),
+//			);
+//			if ( $user_mode == 'menu_order' ) { $args['post__not_in'] = $user_tickets_id; }
+		}
+	} // end new or last
+
+	$tickets = get_posts($args);
+	$count = count($tickets);
+	if ( $count == 1 ) {
+		//update user list of tickets
+		foreach ( $tickets as $t ) {
+			$user_tickets[] = array(
+				'ID' => $t->ID,
+				'date' => time()
+			);
+			if ( $new_or_last == 'new' ) {
+				update_user_meta( $user_id,'sstfg_tickets',$user_tickets);
+			}
+			$count_user_tickets = count($user_tickets);
+			$pdfs = get_attached_media( 'application/pdf', $t->ID );
+		}	
+		// upgrade to subscription 1.5 if last decouverte ticket
+		if ( $user_subscription == '1' && $count_all_tickets == $count_user_tickets && $count_all_tickets != 0 && $user_mode == 'menu_order' )
+			update_user_meta($user_id,'sstfg_subscription', '1.5');
+//			wp_redirect(get_permalink()); exit;
+//			$ticket_out .= "<p class='alert alert-info' role='alert'><small>".__('This is the last ticket of the Decouverte sequence: you have finished it. Now you are ready to subscribe to the complete Small Steps To Feel Good sequence. You can do this from your User panel','sstfg')."</small></p>";
+//		}
+		// build download link
+		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		if ( is_plugin_active('s2member/s2member.php') ) {
+			$name = get_post_meta($t->ID,'_sstfg_protected_pdf',true);
+			$pdf_url = "/?s2member_file_download=access-s2member-ccap-sstfg/".$name;
+		} else {
+			foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
+		}
+		// OUTPUT
+		$ticket_out = "
+			<p>".__('Here you have your ticket:','sstfg')."</p>
+			<p><strong>".$t->post_title."</strong>: <a href='".$pdf_url."' target='_blank'>".__('Download it (PDF)','sstfg')."</a></p>
+		";
+
+	} elseif ( $new_or_last == 'last' && $count != 1 && !is_array($user_tickets) ) {
+//		$count_user_tickets = "";
+		$ticket_out = "<p class='alert alert-warning' role='alert'>".__('It seems that you still don\'t have any tickets.','sstfg')."</p>";
+
+	} else {
+//		$count_user_tickets = "";
+		$ticket_out = "<p class='alert alert-danger' role='alert'>".__('Something was wrong. We cannot serve you a new ticket.','sstfg')."</p>";
+	}
+	return $ticket_out;
+
+}
+// get new ticket
+function sstfg_new_ticket($user_id) {
+	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
+	$user_sequence = get_user_meta( $user_id,'sstfg_current_sequence', true );
+	$user_mode = get_user_meta( $user_id,'sstfg_ticket_order', true );
+	$user_tickets = get_user_meta( $user_id,'sstfg_tickets', true );
+	if (is_array($user_tickets)) {
+		foreach ( $user_tickets as $ut ) { $user_tickets_id[] = $ut['ID']; }
+	} else { $user_tickets_id = ""; }
+
+	if ( $user_subscription == '1' ) {
+		// get all tickets in current phase
+		$args = array(
+			'post_type' => 'billet',
+			'posts_per_page' => '-1',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'sequence-composee',
+					'field'    => 'name',
+					'terms'    => $user_sequence,
+				),
+			)
+		);
+		$tickets = get_posts($args);
+		$count_all_tickets = count($tickets);
+		// get ticket to serve now
 		$args = array(
 			'post_type' => 'billet',
 			'posts_per_page' => '1',
@@ -894,6 +1038,7 @@ function sstfg_new_ticket($user_id) {
 		$tickets = get_posts($args);
 		$count = count($tickets);
 		if ( $count == 1 ) {
+			//update user list of tickets
 			foreach ( $tickets as $t ) {
 				$user_tickets[] = array(
 					'ID' => $t->ID,
@@ -903,13 +1048,15 @@ function sstfg_new_ticket($user_id) {
 				$count_user_tickets = count($user_tickets);
 				$pdfs = get_attached_media( 'application/pdf', $t->ID );
 			}
+			// build download link
 			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			if ( is_plugin_active('s2member/s2member.php') ) {
 				$name = get_post_meta($t->ID,'_sstfg_protected_pdf',true);
 				$pdf_url = "/?s2member_file_download=access-s2member-ccap-sstfg/".$name;
 			} else {
 				foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
-			}	
+			}
+			// OUTPUT
 			$ticket_out = "
 				<p>".__('Here you have your new ticket:','sstfg')."</p>
 				<p><strong>".$t->post_title."</strong>: <a href='".$pdf_url."' target='_blank'>".__('Download it (PDF)','sstfg')."</a></p>
@@ -973,7 +1120,7 @@ function sstfg_last_ticket($user_id) {
 			<p><strong>".$t->post_title."</strong>: <a href='".$pdf_url."' target='_blank'>".__('Download it (PDF)','sstfg')."</a></p>
 			";
 	} else {
-		$ticket_out = "<p class='alert alert-info' role='alert'>".__('It seems that you still don\'t have any tickets.','sstfg')."</p>";
+		$ticket_out = "<p class='alert alert-warning' role='alert'>".__('It seems that you still don\'t have any tickets.','sstfg')."</p>";
 	}
 
 	return $ticket_out;
@@ -1004,12 +1151,14 @@ function sstfg_access_to_tickets_panel($atts) {
 	$ticket = "";
 	// if get new ticket form has been sent
 	if ( array_key_exists('new_ticket_submit',$_POST) ) {
-		$ticket = sstfg_new_ticket($user_id);
+		//$ticket = sstfg_new_ticket($user_id);
+		$ticket = sstfg_get_ticket($user_id,"new");
 	}
 
 	// if get last ticket form has been sent
 	elseif ( array_key_exists('last_ticket_submit',$_POST) ) {
-		$ticket = sstfg_last_ticket($user_id);
+		//$ticket = sstfg_last_ticket($user_id);
+		$ticket = sstfg_get_ticket($user_id,"last");
 	}
 
 	// OUTPUT
@@ -1093,7 +1242,7 @@ function sstfg_add_cap_to_customer($order_id) {
 			$user->add_cap( 'access_s2member_ccap_sstfg' );
 			foreach ( $extra_fields as $ef ) {
 				$ef_value = get_user_meta( $customer_id,$ef['label'],true);
-				if ( $ef_value != '' ) { update_user_meta( $customer_id,$ef['label'],$ef['initial'] ); }
+				if ( $ef_value == '' ) { update_user_meta( $customer_id,$ef['label'],$ef['initial'] ); }
 			}
 		}
 	}
