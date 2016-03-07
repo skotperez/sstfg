@@ -184,7 +184,7 @@ $extra_fields = array(
 		'name' => __('Current sequence', 'sstfg'),
 		'label' => 'sstfg_current_sequence',
 		'type' => 'input',
-		'initial' => 'Decouverte',
+		'initial' => 'Découverte',
 		'show_in_frontend' => '2'
 	),
 	array(
@@ -790,6 +790,45 @@ function sstfg_form_user_edit_profile($atts){
 
 } // end edit user profile form
 
+// upgrade subscription type
+function sstfg_decouverte_to_approfondissement($user_id,$user_subscription) {
+	if ( $user_subscription != 1.5 )
+		return;
+
+	update_user_meta($user_id,'sstfg_subscription','2');
+	update_user_meta($user_id,'sstfg_current_sequence','Approfondissement');
+	update_user_meta($user_id,'sstfg_ticket_order','rand');
+
+	$sstfg_url = get_permalink();
+	$user_data = get_userdata( $user_id );
+	$to = $user_data->user_email;
+	$subject = __('Bebooda SSTFG verification','sstfg');
+	$message = 
+"<p>".__('Hi','sstfg')." ".$user_data->user_login.",</p>"
+. "\r\n\r\n" .
+"<p>".__('You have upgraded your SSTFG subscription from Decouverte to Approfondissement.','sstfg')."</p>"
+. "\r\n\r\n" .
+"<p>".__('Now you can access to the whole tickets. In this Approfondissement phase you can choose the way you get your tickets: sequentially or randomly.','sstfg')."</p>"
+. "\r\n\r\n" .
+"<p>".__('You can access your tickets and change your subscription settings here:','sstfg')." <a href='".$sstfg_url."'>".$sstfg_url."</a></p>"
+. "\r\n\r\n" .
+"<p>".__('Enjoy your tickets!','sstfg')
+. "\r\n" .
+"<br />Bebooda.</p>"
+;
+		$headers[] = 'From: Bebooda SSTFG <sstfg@bebooda.org>' . "\r\n";
+//		$headers[] = 'Sender: Bebooda Notification System <no-reply@bebooda.org>' . "\r\n";
+//		$headers[] = 'Sender: Bebooda Notification System <info@montera34.com>' . "\r\n";
+		$headers[] = 'Reply-To:  Bebooda SSTFG <sstfg@bebooda.org>' . "\r\n";
+//		$headers[] = 'To: <' .$to. '>' . "\r\n";
+		// To send HTML mail, the Content-type header must be set, uncomment the following two lines
+		$headers[]  = 'MIME-Version: 1.0' . "\r\n";
+		$headers[] = 'Content-type: text/html; charset=utf-8' . "\r\n";
+
+		wp_mail( $to, $subject, $message, $headers);
+
+} // upgra subscription type
+
 // adds content to a page depending on subscription type
 function sstfg_if_subscription_type( $atts, $content = null ) {
 	if ( !is_user_logged_in() ) { $user_subscription = 0; }
@@ -801,10 +840,14 @@ function sstfg_if_subscription_type( $atts, $content = null ) {
 	extract( shortcode_atts( array(
 		'subscription' => '',
 	), $atts ));
+	if ( array_key_exists('upgrade',$_GET) && sanitize_text_field($_GET['upgrade']) == 'approfondissement' ) {
+		sstfg_decouverte_to_approfondissement($user_id,$user_subscription);
+		wp_redirect(get_permalink()); exit;
+	}
 	$subscriptions = explode(",",$subscription);
 	foreach ( $subscriptions as $s ) {
 		if ( $s == $user_subscription )
-			return '<div>' . $content . '</div>';
+			return $content ;
 	}
 	return;
 } // end adds content to a page depending on subscription type
@@ -826,7 +869,7 @@ function sstfg_new_ticket($user_id) {
 			'tax_query' => array(
 				array(
 					'taxonomy' => 'sequence-composee',
-					'field'    => 'slug',
+					'field'    => 'name',
 					'terms'    => $user_sequence,
 				),
 			)
@@ -842,7 +885,7 @@ function sstfg_new_ticket($user_id) {
 			'tax_query' => array(
 				array(
 					'taxonomy' => 'sequence-composee',
-					'field'    => 'slug',
+					'field'    => 'name',
 					'terms'    => $user_sequence,
 				),
 			),
@@ -860,8 +903,9 @@ function sstfg_new_ticket($user_id) {
 				$count_user_tickets = count($user_tickets);
 				$pdfs = get_attached_media( 'application/pdf', $t->ID );
 			}
+			include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			if ( is_plugin_active('s2member/s2member.php') ) {
-				$name == get_post_meta($post->ID,'_sstfg_protected_pdf',true);
+				$name = get_post_meta($t->ID,'_sstfg_protected_pdf',true);
 				$pdf_url = "/?s2member_file_download=access-s2member-ccap-sstfg/".$name;
 			} else {
 				foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
@@ -871,12 +915,13 @@ function sstfg_new_ticket($user_id) {
 				<p><strong>".$t->post_title."</strong>: <a href='".$pdf_url."' target='_blank'>".__('Download it (PDF)','sstfg')."</a></p>
 			";
 		} else {
+			$count_user_tickets = "";
 			$ticket_out = "<p class='alert alert-danger' role='alert'>".__('Something was wrong. We cannot serve you a new ticket.','sstfg')."</p>";
 		}
 	
 		if ( $count_all_tickets == $count_user_tickets && $count_all_tickets != 0 && $user_mode == 'menu_order' ) {
 			update_user_meta($user_id,'sstfg_subscription', '1.5');
-			$ticket_out .= "<p><small>".__('This is the last ticket of the Decouverte sequence: you have finished it. Now you are ready to subscribe to the complete Small Steps To Feel Good sequence. You can do this from your User panel','sstfg')."</small></p>";
+//			$ticket_out .= "<p class='alert alert-info' role='alert'><small>".__('This is the last ticket of the Decouverte sequence: you have finished it. Now you are ready to subscribe to the complete Small Steps To Feel Good sequence. You can do this from your User panel','sstfg')."</small></p>";
 		}
 
 	} elseif ( $user_subscription == '1.5' ) {
@@ -916,7 +961,13 @@ function sstfg_last_ticket($user_id) {
 		foreach ( $tickets as $t ) {
 			$pdfs = get_attached_media( 'application/pdf', $t->ID );
 		}
-		foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
+		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		if ( is_plugin_active('s2member/s2member.php') ) {
+			$name = get_post_meta($t->ID,'_sstfg_protected_pdf',true);
+			$pdf_url = "/?s2member_file_download=access-s2member-ccap-sstfg/".$name;
+		} else {
+			foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
+		}
 		$ticket_out = "
 			<p>".__('Here you have your last ticket:','sstfg')."</p>
 			<p><strong>".$t->post_title."</strong>: <a href='".$pdf_url."' target='_blank'>".__('Download it (PDF)','sstfg')."</a></p>
@@ -1037,6 +1088,9 @@ function sstfg_add_cap_to_customer($order_id) {
 	$items = $order->get_items();
 	foreach ($items as $item) {
 		if ($item['product_id']== SSTFG_WC_PRODUCT_ID ) {
+			$user = new WP_User( $customer_id );
+			$user->add_cap( 'access_s2member_level0' );
+			$user->add_cap( 'access_s2member_ccap_sstfg' );
 			foreach ( $extra_fields as $ef ) {
 				$ef_value = get_user_meta( $customer_id,$ef['label'],true);
 				if ( $ef_value != '' ) { update_user_meta( $customer_id,$ef['label'],$ef['initial'] ); }
