@@ -772,12 +772,8 @@ function sstfg_form_user_edit_profile($atts){
 			if ( $ef['show_in_frontend'] == '2' ) { $disabled = " disabled"; } else { $disabled = ""; }
 			if ( $ef['type'] == 'input' ) {
 				$extra_output .= "
-					<fieldset class='form-group'>
-						<label for='".$ef['label']."' class='col-sm-3 control-label'>".$ef['name']."</label>
-						<div class='col-sm-5'>
-							<input id='".$ef['label']."' class='form-control' type='text' value='".$$ef['label']."' name='".$ef['label']."'".$disabled." />
-						</div>
-					</fieldset>
+					<label for='".$ef['label']."'><strong>".$ef['name']."</strong></label>
+					<input id='".$ef['label']."' type='text' value='".$$ef['label']."' name='".$ef['label']."'".$disabled." />
 				";
 	
 			} elseif ( $ef['type'] == 'radio' ) {
@@ -791,8 +787,8 @@ function sstfg_form_user_edit_profile($atts){
 				}
 				if ( !isset($help_out) ) { $help_out = ""; }
 				$extra_output .= "
-					<fieldset class='form-group ".$ef['label']."'>
-						".$ef['name']."
+					<fieldset class='".$ef['label']."'>
+						<strong>".$ef['name']."</strong>
 						<div class='radio'>".$options_out."</div>
 						".$help_out."
 					</fieldset>
@@ -802,12 +798,10 @@ function sstfg_form_user_edit_profile($atts){
 			} elseif ( $ef['type'] == 'checkbox' ) {
 				if ( $$ef['label'] != '' ) { $checked_out = " checked"; } else { $checked_out = ''; }
 				$extra_output .= "
-					<fieldset class='form-group ".$ef['label']."'>
-						<div class='col-sm-offset-3 col-sm-3 checkbox'>
-							<label>
-								<input type='checkbox' name='".$ef['label']."' id='".$ef['label']."' value='please'".$checked_out.$disabled." /> ".$ef['name']."
-							</label>
-						</div>
+					<fieldset class='checkbox ".$ef['label']."'>
+						<label>
+							<input type='checkbox' name='".$ef['label']."' id='".$ef['label']."' value='please'".$checked_out.$disabled." /> <strong>".$ef['name']."</strong>
+						</label>
 					</fieldset>
 				";
 	
@@ -815,31 +809,20 @@ function sstfg_form_user_edit_profile($atts){
 		}
 	}
 
-	$req_class = " <span class='glyphicon glyphicon-asterisk'></span>";
 	$form_out = $feedback_out. "
-	<form class='row' name='edit_profile_form' action='".$action."' method='post'>
-		<div class='form-horizontal col-md-12'>
-		<fieldset class='form-group'>
-			<label for='user_login' class='col-sm-3 control-label'>".__('Username','sstfg').$req_class."</label>
-			<div class='col-sm-5'>
-				<input id='user_login' class='form-control' type='text' value='".$username."' name='user_login' disabled='disabled' />
-			</div>
+	<form class='row-fluid' name='edit_profile_form' action='".$action."' method='post'>
+		<fieldset class='span4'>
+			<label for='user_login'><strong>".__('Username','sstfg')."</strong></label>
+			<input id='user_login' class='form-control' type='text' value='".$username."' name='user_login' disabled='disabled' />
+			<label for='user_email'>".__('Email','sstfg')."</label>
+			<input id='user_email' class='form-control' type='text' value='".$email."' name='user_email' disabled='disabled' />
 		</fieldset>
-		<fieldset class='form-group'>
-			<label for='user_email' class='col-sm-3 control-label'>".__('Email','sstfg').$req_class."</label>
-			<div class='col-sm-5'>
-				<input id='user_email' class='form-control' type='text' value='".$email."' name='user_email' disabled='disabled' />
-			</div>
-		</fieldset>
+		<fieldset class='span4'>
 		".$extra_output."
-		<fieldset class='form-group'>
-			<div class='col-sm-offset-3 col-sm-5'>
-				<div class='pull-right'>
-					<input id='wp-submit' class='btn btn-primary' type='submit' value='".__('Update','sstfg')."' name='wp-submit' />
-				</div>
-    			</div>
 		</fieldset>
-		</div>
+		<fieldset class='span4'>
+			<input id='wp-submit' class='sbutton square noshadow medium btn-info' type='submit' value='".__('Update','sstfg')."' name='wp-submit' />
+		</fieldset>
 	</form>
 	";
 	return $form_out;
@@ -919,6 +902,7 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 	$user_tickets = get_user_meta( $user_id,'sstfg_tickets', true );
 	// LAST
 	if ( $new_or_last == 'last' ) {
+		$text_out = __('Your last ticket','sstfg');
 		if (is_array($user_tickets)) {
 			$last_ticket = end($user_tickets);
 			$args = array(
@@ -931,6 +915,7 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 
 	// NEW
 	elseif ( $new_or_last == 'new' ) {
+		$text_out = __('Your new ticket','sstfg');
 		if ( $user_subscription == '1.5' )
 			return;
 //			return "<p class='alert alert-info' role='alert'>".__('You have finish the Decouverte sequence: to get more tickets <a href="/user-panel">you must change your subscription</a>.','sstfg')."</p>";
@@ -1009,8 +994,7 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 		}
 		// OUTPUT
 		$ticket_out = "
-			<p>".__('Here you have your ticket:','sstfg')."</p>
-			<p><strong>".$t->post_title."</strong>: <a class='sbutton square noshadow medium mainthemebgcolor' href='".$pdf_url."' target='_blank'><i class='icon-download'></i> ".__('Download it (PDF)','sstfg')."</a></p>
+			<div class='well'><p><strong>".$text_out."</strong>: ".$t->post_title."</p><a class='sbutton square noshadow small mainthemebgcolor' href='".$pdf_url."' target='_blank'><i class='icon-download'></i> ".__('Download it (PDF)','sstfg')."</a></div>
 		";
 
 	} elseif ( $new_or_last == 'last' && $count != 1 && !is_array($user_tickets) ) {
@@ -1190,31 +1174,17 @@ function sstfg_access_to_tickets_panel($atts) {
 
 	// OUTPUT
 	$new_ticket_out = "
-		
-		<form class='row' name='new_ticket_form' action='".$action."' method='post'>
-			<fieldset class='form-group'>
-				<div class='col-sm-offset-3 col-sm-5'>
-					<div class='pull-right'>
-						<input id='new_ticket_submit' class='btn btn-primary' type='submit' value='".__('Get new ticket','sstfg')."' name='new_ticket_submit' />
-					</div>
-    				</div>
-			</fieldset>
+		<form class='pull-right' name='new_ticket_form' action='".$action."' method='post'>
+			<input id='new_ticket_submit' class='sbutton square noshadow medium btn-info' type='submit' value='".__('Get new ticket','sstfg')."' name='new_ticket_submit' />
 		</form>
 	";
 	$last_ticket_out = "
-		
-		<form class='row' name='last_ticket_form' action='".$action."' method='post'>
-			<fieldset class='form-group'>
-				<div class='col-sm-offset-3 col-sm-5'>
-					<div class='pull-right'>
-						<input id='last_ticket_submit' class='btn btn-primary' type='submit' value='".__('Get the last ticket','sstfg')."' name='last_ticket_submit' />
-					</div>
-    				</div>
-			</fieldset>
+		<form name='last_ticket_form' action='".$action."' method='post'>
+			<input id='last_ticket_submit' class='sbutton square noshadow medium btn-default' type='submit' value='".__('Get the last ticket','sstfg')."' name='last_ticket_submit' />
 		</form>
 	";
 
-	$output = $ticket.$new_ticket_out.$last_ticket_out;
+	$output = $new_ticket_out.$last_ticket_out.$ticket;
 	return $output;
 
 } // end show panel to access to ticket
