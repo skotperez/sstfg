@@ -857,7 +857,6 @@ function sstfg_decouverte_to_approfondissement($user_id,$user_subscription) {
 ;
 		$headers[] = 'From: Bebooda SSTFG <sstfg@bebooda.org>' . "\r\n";
 //		$headers[] = 'Sender: Bebooda Notification System <no-reply@bebooda.org>' . "\r\n";
-//		$headers[] = 'Sender: Bebooda Notification System <info@montera34.com>' . "\r\n";
 		$headers[] = 'Reply-To:  Bebooda SSTFG <sstfg@bebooda.org>' . "\r\n";
 //		$headers[] = 'To: <' .$to. '>' . "\r\n";
 		// To send HTML mail, the Content-type header must be set, uncomment the following two lines
@@ -891,6 +890,40 @@ function sstfg_if_subscription_type( $atts, $content = null ) {
 	return;
 } // end adds content to a page depending on subscription type
 
+function sstfg_send_ticket($user_id,$ticket_name,$ticket_url) {
+	$ticket_url = get_home_url().$ticket_url;
+	$user_data = get_userdata( $user_id );
+	$to = $user_data->user_email;
+	$subject = __('Your new ticket:','sstfg')." ".$ticket_name;
+	$message = 
+"<p>".__('Hi','sstfg')." ".$user_data->user_login.",</p>"
+. "\r\n\r\n" .
+"<p>".__('Here you have the link to download your new SSTFG ticket:','sstfg')."</p>"
+. "\r\n\r\n" .
+"<p><a href='".$ticket_url."'>".$ticket_name."</a></p>"
+. "\r\n\r\n" .
+"<p>".__('If you have problems to access this ticket with the link above, copy and paste the following link in your browser address bar:','sstfg')." <a href='".$sstfg_url."'>".$sstfg_url."</a></p>"
+. "\r\n\r\n" .
+"<p>".$ticket_url."</p>"
+. "\r\n\r\n" .
+"<p>".__('Remember that you need to log in first in order to download any ticket.','sstfg')
+. "\r\n\r\n" .
+"<p>".__('Enjoy your ticket!','sstfg')
+. "\r\n" .
+"<br />Bebooda.</p>"
+;
+	$headers[] = 'From: Bebooda SSTFG <sstfg@bebooda.org>' . "\r\n";
+//	$headers[] = 'Sender: Bebooda Notification System <no-reply@bebooda.org>' . "\r\n";
+	$headers[] = 'Reply-To:  Bebooda SSTFG <sstfg@bebooda.org>' . "\r\n";
+//	$headers[] = 'To: <' .$to. '>' . "\r\n";
+	// To send HTML mail, the Content-type header must be set, uncomment the following two lines
+	$headers[]  = 'MIME-Version: 1.0' . "\r\n";
+	$headers[] = 'Content-type: text/html; charset=utf-8' . "\r\n";
+
+	wp_mail( $to, $subject, $message, $headers);
+
+}
+
 // get ticket
 function sstfg_get_ticket($user_id,$new_or_last) {
 	$user_subscription = get_user_meta( $user_id,'sstfg_subscription', true );
@@ -900,6 +933,7 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 	$user_mode = get_user_meta( $user_id,'sstfg_ticket_order', true );
 		if ( $user_mode == 'menu_order' ) { $user_mode = "meta_value_num menu_order"; }
 	$user_tickets = get_user_meta( $user_id,'sstfg_tickets', true );
+	$user_send_me_tickets = get_user_meta( $user_id,'sstfg_ticket_send_to_mail', true );
 	// LAST
 	if ( $new_or_last == 'last' ) {
 		$text_out = __('Your last ticket','sstfg');
@@ -981,7 +1015,7 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 		if ( $user_subscription == '1' && $count_all_tickets == $count_user_tickets && $count_all_tickets != 0 && $user_mode == 'meta_value_num menu_order' )
 			update_user_meta($user_id,'sstfg_subscription', '1.5');
 		// end approfondissement
-		if ( $user_subscription == '2' && $count_all_tickets == $count_user_tickets && $count_all_tickets != 0 && $user_mode == 'meta_value_num menu_order' )
+		elseif ( $user_subscription == '2' && $count_all_tickets == $count_user_tickets && $count_all_tickets != 0 && $user_mode == 'meta_value_num menu_order' )
 			update_user_meta($user_id,'sstfg_subscription', '2.5');
 
 		// build download link
@@ -992,6 +1026,10 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 		} else {
 			foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
 		}
+		// SEND TICKET BY MAIL
+		if ( $new_or_last == 'new' && $user_send_me_tickets == 'please' )
+			sstfg_send_ticket($user_id,$t->post_title,$pdf_url);
+
 		// OUTPUT
 		$ticket_out = "
 			<div class='well'><p><strong>".$text_out."</strong>: ".$t->post_title."</p><a class='sbutton square noshadow small mainthemebgcolor' href='".$pdf_url."' target='_blank'><i class='icon-download'></i> ".__('Download it (PDF)','sstfg')."</a></div>
