@@ -2,11 +2,12 @@
 /*
 Plugin Name: Small Steps To Feel Good
 Description: This plugin adds a SSTFG ticket system to a WordPress site.
-Version: 0.1
+Version: 0.2
 Author: montera34
 Author URI: http://montera34.com
 License: GPLv3
-*/
+Domain Path: /lang/
+ */
 
 // VARS
 ////
@@ -227,73 +228,76 @@ function save_sstfg_billet_metaboxes($post_id, $post, $update) {
 // END Adds custom metaboxes to billet post type
 
 // sstfg extra fields in user profile
+function sstfg_user_extra_fields() {
 $extra_fields = array(
 	array(
-		'name' => __('Subscription', 'sstfg'),
+		'name' => __('Subscription','sstfg'),
 		'label' => 'sstfg_subscription',
 		'type' => 'input',
 		'initial' => '1',
 		'show_in_frontend' => '0'
 	),
 	array(
-		'name' => __('Current sequence', 'sstfg'),
+		'name' => __('Current sequence','sstfg'),
 		'label' => 'sstfg_current_sequence',
 		'type' => 'input',
 		'initial' => 'Découverte',
 		'show_in_frontend' => '2'
 	),
 	array(
-		'name' => __('Ticket Access mode', 'sstfg'),
+		'name' => __('Ticket Access mode','sstfg'),
 		'label' => 'sstfg_ticket_access_mode',
 		'type' => 'radio',
 		'options' => array(
-			'manual' => __('Manual', 'sstfg'),
-			'automatic' => __('Automatic', 'sstfg')
+			'manual' => __('Manual','sstfg'),
+			'automatic' => __('Automatic','sstfg')
 		),
 		'initial' => 'manual',
 		'show_in_frontend' => '1'
 	),
 	array(
-		'name' => __('Ticket access regularity', 'sstfg'),
+		'name' => __('Ticket access regularity','sstfg'),
 		'label' => 'sstfg_ticket_access_regularity',
 		'type' => 'radio',
 		'options' => array(
-			'once' => __('Once a week', 'sstfg'),
-			'twice' => __('Twice a week', 'sstfg')
+			'once' => __('Once a week','sstfg'),
+			'twice' => __('Twice a week','sstfg')
 		),
 		'initial' => '',
 		'show_in_frontend' => '1'
 	),
 	array(
-		'name' => __('Ticket order', 'sstfg'),
+		'name' => __('Ticket order','sstfg'),
 		'label' => 'sstfg_ticket_order',
 		'type' => 'radio',
 		'options' => array(
-			'rand' => __('Random', 'sstfg'),
-			'menu_order' => __('Sequential', 'sstfg')
+			'rand' => __('Random','sstfg'),
+			'menu_order' => __('Sequential','sstfg')
 		),
 		'initial' => 'menu_order',
 		'show_in_frontend' => '1'
 	),
 	array(
-		'name' => __('Send me the tickets to my email address', 'sstfg'),
+		'name' => __('Send me the tickets to my email address','sstfg'),
 		'label' => 'sstfg_ticket_send_to_mail',
 		'type' => 'checkbox',
 		'initial' => '',
 		'show_in_frontend' => '1'
 	),
 	array(
-		'name' => __('Gotten Tickets', 'sstfg'),
+		'name' => __('Gotten Tickets','sstfg'),
 		'label' => 'sstfg_tickets',
 		'type' => 'input',
 		'initial' => '',
 		'show_in_frontend' => '0'
 	)
 );
-
+	return $extra_fields;
+}
+	
 // Register new user contact Methods: custom profile fields
 function sstfg_extra_user_profile_fields( $user ) {
-	global $extra_fields;
+	$extra_fields = sstfg_user_extra_fields();
 	foreach ( $extra_fields as $ef ) {
 		$user_fields_method[$ef['label']] = $ef['name'];
 	}
@@ -321,7 +325,7 @@ function sstfg_form_user_edit_profile($atts){
 	}
 
 	$action = get_permalink();
-	global $extra_fields;
+	$extra_fields = sstfg_user_extra_fields();
 
 	// if edit profile form has been sent
 	if ( array_key_exists('wp-submit',$_POST) ) {
@@ -408,7 +412,7 @@ function sstfg_form_user_edit_profile($atts){
 		<fieldset class='span4'>
 			<label for='user_login'><strong>".__('Username','sstfg')."</strong></label>
 			<input id='user_login' class='form-control' type='text' value='".$username."' name='user_login' disabled='disabled' />
-			<label for='user_email'>".__('Email','sstfg')."</label>
+			<label for='user_email'><strong>".__('Email','sstfg')."</strong></label>
 			<input id='user_email' class='form-control' type='text' value='".$email."' name='user_email' disabled='disabled' />
 		</fieldset>
 		<fieldset class='span4'>
@@ -435,7 +439,7 @@ function sstfg_decouverte_to_approfondissement($user_id,$user_subscription) {
 	$sstfg_url = get_permalink();
 	$user_data = get_userdata( $user_id );
 	$to = $user_data->user_email;
-	$subject = __('Bebooda SSTFG verification','sstfg');
+	$subject = __('Your SSTFG subscription has been updated','sstfg');
 	$message = 
 "<p>".__('Hi','sstfg')." ".$user_data->user_login.",</p>"
 . "\r\n\r\n" .

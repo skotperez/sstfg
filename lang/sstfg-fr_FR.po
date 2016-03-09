@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Bebooda SSTFG\n"
-"POT-Creation-Date: 2016-03-08 19:32+0100\n"
-"PO-Revision-Date: 2016-03-08 19:32+0100\n"
+"POT-Creation-Date: 2016-03-09 11:12+0100\n"
+"PO-Revision-Date: 2016-03-09 11:12+0100\n"
 "Last-Translator: Alfonso Sánchez Uzábal <skotperez@voragine.net>\n"
 "Language-Team: Montera34 <info@montera34.com>\n"
 "Language: fr\n"
@@ -12,224 +12,224 @@ msgstr ""
 "X-Generator: Poedit 1.6.10\n"
 "X-Poedit-Basepath: .\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Poedit-KeywordsList: __;_e\n"
+"X-Poedit-KeywordsList: __;_e;esc_html__\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-SearchPath-0: ..\n"
 
-#: ../sstfg.php:100
+#: ../sstfg.php:101
 msgid "Tickets"
 msgstr "Billets"
 
-#: ../sstfg.php:101
+#: ../sstfg.php:102
 msgid "Ticket"
 msgstr "Billet"
 
-#: ../sstfg.php:102
+#: ../sstfg.php:103
 msgid "Add ticket"
 msgstr "Ajouter un billet"
 
-#: ../sstfg.php:103
+#: ../sstfg.php:104
 msgid "Edit"
 msgstr "Éditer "
 
-#: ../sstfg.php:104
+#: ../sstfg.php:105
 msgid "Edit this ticket"
 msgstr "Éditer un billet"
 
-#: ../sstfg.php:105
+#: ../sstfg.php:106
 msgid "New ticket"
 msgstr "Nouveau billet"
 
-#: ../sstfg.php:106
+#: ../sstfg.php:107
 msgid "View ticket"
 msgstr "Voir le billet"
 
-#: ../sstfg.php:107
+#: ../sstfg.php:108
 msgid "View this ticket"
 msgstr "Voir ce billet"
 
-#: ../sstfg.php:108
+#: ../sstfg.php:109
 msgid "Search tickets"
 msgstr "Chercher des billets"
 
-#: ../sstfg.php:109
+#: ../sstfg.php:110
 msgid "No tickets found"
 msgstr "Aucun billet n'a été trouvé"
 
-#: ../sstfg.php:110
+#: ../sstfg.php:111
 msgid "No tickets in the trash"
 msgstr "Aucun billet dans la poubelle"
 
-#: ../sstfg.php:133
+#: ../sstfg.php:134
 msgid "Base Sequences"
 msgstr "Séquences de base"
 
-#: ../sstfg.php:134 ../sstfg.php:143
+#: ../sstfg.php:135 ../sstfg.php:144
 msgid "Base Sequence"
 msgstr "Séquence de base"
 
-#: ../sstfg.php:135
+#: ../sstfg.php:136
 msgid "Search Base Sequences"
 msgstr "Chercher des séquences de base"
 
-#: ../sstfg.php:136
+#: ../sstfg.php:137
 msgid "All Base Sequences"
 msgstr "Toutes les séquences de base"
 
-#: ../sstfg.php:137
+#: ../sstfg.php:138
 msgid "Parent Base Sequence"
 msgstr "Séquence de base supérieure"
 
-#: ../sstfg.php:138
+#: ../sstfg.php:139
 msgid "Parent Base Sequence:"
 msgstr "Séquence de base supérieure:"
 
-#: ../sstfg.php:139
+#: ../sstfg.php:140
 msgid "Edit Base Sequence"
 msgstr "Éditer la séquence de base"
 
-#: ../sstfg.php:140
+#: ../sstfg.php:141
 msgid "Update Base Sequence"
 msgstr "Mettre à jour la séquence de base"
 
-#: ../sstfg.php:141
+#: ../sstfg.php:142
 msgid "Add new Base Sequence"
 msgstr "Ajouter une nouvelle séquence de base"
 
-#: ../sstfg.php:142
+#: ../sstfg.php:143
 msgid "Name of the new Base Sequence"
 msgstr "Nom d'une nouvelle séquence de base"
 
-#: ../sstfg.php:153
+#: ../sstfg.php:154
 msgid "Mixed Sequences"
 msgstr "Séquences composées"
 
-#: ../sstfg.php:154 ../sstfg.php:163
+#: ../sstfg.php:155 ../sstfg.php:164
 msgid "Mixed Sequence"
 msgstr "Séquence composée"
 
-#: ../sstfg.php:155
+#: ../sstfg.php:156
 msgid "Search Mixed Sequences"
 msgstr "Chercher les séquences composées"
 
-#: ../sstfg.php:156
+#: ../sstfg.php:157
 msgid "All Mixed Sequences"
 msgstr "Toutes les séquences composées"
 
-#: ../sstfg.php:157
+#: ../sstfg.php:158
 msgid "Parent Mixed Sequence"
 msgstr "Séquence composée supérieure"
 
-#: ../sstfg.php:158
+#: ../sstfg.php:159
 msgid "Parent Mixed Sequence:"
 msgstr "Séquence composée supérieure:"
 
-#: ../sstfg.php:159
+#: ../sstfg.php:160
 msgid "Edit Mixed Sequence"
 msgstr "Éditer la séquence composée"
 
-#: ../sstfg.php:160
+#: ../sstfg.php:161
 msgid "Update Mixed Sequence"
 msgstr "Mettre à jour la séquence composée"
 
-#: ../sstfg.php:161
+#: ../sstfg.php:162
 msgid "Add new Mixed Sequence"
 msgstr "Ajouter une nouvelle séquence composée"
 
-#: ../sstfg.php:162
+#: ../sstfg.php:163
 msgid "Name of the new Mixed Sequence"
 msgstr "Nom d'une nouvelle séquence composée"
 
-#: ../sstfg.php:188 ../sstfg.php:218
+#: ../sstfg.php:189 ../sstfg.php:219
 #, php-format
 msgid "Order in sequence %s"
 msgstr "Ordre dans la séquence %s"
 
-#: ../sstfg.php:198
+#: ../sstfg.php:199
 msgid "Order of this ticket for each sequence"
 msgstr "Ordre du billet dans chaque séquence\t"
 
-#: ../sstfg.php:232
+#: ../sstfg.php:234
 msgid "Subscription"
 msgstr "Abonnement"
 
-#: ../sstfg.php:239
+#: ../sstfg.php:241
 msgid "Current sequence"
 msgstr "Séquence actuelle"
 
-#: ../sstfg.php:246
+#: ../sstfg.php:248
 msgid "Ticket Access mode"
 msgstr "Mode d’accès aux billets"
 
-#: ../sstfg.php:250
+#: ../sstfg.php:252
 msgid "Manual"
 msgstr "Manuel (à la demande)"
 
-#: ../sstfg.php:251
+#: ../sstfg.php:253
 msgid "Automatic"
 msgstr "Automatique, selon une périodicité"
 
-#: ../sstfg.php:257
+#: ../sstfg.php:259
 msgid "Ticket access regularity"
 msgstr "Périodicité"
 
-#: ../sstfg.php:261
+#: ../sstfg.php:263
 msgid "Once a week"
 msgstr "Une fois par semaine"
 
-#: ../sstfg.php:262
+#: ../sstfg.php:264
 msgid "Twice a week"
 msgstr "Deux fois par semaine"
 
-#: ../sstfg.php:268
+#: ../sstfg.php:270
 msgid "Ticket order"
 msgstr "Mode de tirage"
 
-#: ../sstfg.php:272
+#: ../sstfg.php:274
 msgid "Random"
 msgstr "Au hasard"
 
-#: ../sstfg.php:273
+#: ../sstfg.php:275
 msgid "Sequential"
 msgstr "En séquence"
 
-#: ../sstfg.php:279
+#: ../sstfg.php:281
 msgid "Send me the tickets to my email address"
 msgstr "Envoyez-moi les billets à mon adresse mail"
 
-#: ../sstfg.php:286
+#: ../sstfg.php:288
 msgid "Gotten Tickets"
 msgstr "Billets reçus"
 
-#: ../sstfg.php:347
+#: ../sstfg.php:351
 msgid "Settings for your SSTFG subscription has been updated."
 msgstr "Les paramètres de ton abonnement SSTG ont été actualisés"
 
-#: ../sstfg.php:378
+#: ../sstfg.php:382
 msgid "Random mode is not available in this type of subscription."
 msgstr "Le hasard n'est pas un mode disponible sur ce type de souscription. "
 
-#: ../sstfg.php:409
+#: ../sstfg.php:413
 msgid "Username"
 msgstr "Nom d'utilisateur"
 
-#: ../sstfg.php:411
+#: ../sstfg.php:415
 msgid "Email"
 msgstr "Mail"
 
-#: ../sstfg.php:418
+#: ../sstfg.php:422
 msgid "Update"
 msgstr "Mettre à jour"
 
-#: ../sstfg.php:438
-msgid "Bebooda SSTFG verification"
-msgstr "Bebooda SSTFG confirmation "
+#: ../sstfg.php:442
+msgid "Your SSTFG subscription has been updated"
+msgstr "Votre abonnement SSTFG a été actualisé"
 
-#: ../sstfg.php:440 ../sstfg.php:493
+#: ../sstfg.php:444 ../sstfg.php:497
 msgid "Hi"
 msgstr "Bonjour"
 
-#: ../sstfg.php:442
+#: ../sstfg.php:446
 msgid ""
 "You have upgraded your SSTFG subscription from Decouverte to "
 "Approfondissement."
@@ -237,7 +237,7 @@ msgstr ""
 "Vous avez actualisé votre abonnement SSTFG depuis Découverte jusqu'à "
 "approfondissement"
 
-#: ../sstfg.php:444
+#: ../sstfg.php:448
 msgid ""
 "Now you can access to the whole tickets. In this Approfondissement phase you "
 "can choose the way you get your tickets: sequentially or randomly."
@@ -246,25 +246,25 @@ msgstr ""
 "d'Approfondissement  vous pouvez choisir votre mode de tirage: "
 "séquentiellement ou par hasard"
 
-#: ../sstfg.php:446
+#: ../sstfg.php:450
 msgid "You can access your tickets and change your subscription settings here:"
 msgstr ""
 "Vous pouvez accéder à vos billets et changer vos paramètres d'abonnement "
 "ici: "
 
-#: ../sstfg.php:448
+#: ../sstfg.php:452
 msgid "Enjoy your tickets!"
 msgstr "Bon billets!"
 
-#: ../sstfg.php:491
+#: ../sstfg.php:495
 msgid "Your new ticket:"
 msgstr "Votre nouveau billet"
 
-#: ../sstfg.php:495
+#: ../sstfg.php:499
 msgid "Here you have the link to download your new SSTFG ticket:"
 msgstr "Ici le lien pour télécharger votre nouveau billet SSTFG:"
 
-#: ../sstfg.php:499
+#: ../sstfg.php:503
 msgid ""
 "If you have problems to access this ticket with the link above, copy and "
 "paste the following link in your browser address bar:"
@@ -272,45 +272,87 @@ msgstr ""
 "Si vous rencontrez des problèmes pour accéder à ce billet avec le lien, "
 "copier et coller le lien ci-dessous dans la barre menu de votre navigateur:"
 
-#: ../sstfg.php:503
+#: ../sstfg.php:507
 msgid "Remember that you need to log in first in order to download any ticket."
 msgstr ""
 "Rappelez-vous que vous avez besoin de vous inscrire avant de téléchager un "
 "billet"
 
-#: ../sstfg.php:505
+#: ../sstfg.php:509
 msgid "Enjoy your ticket!"
 msgstr "Bon billet!"
 
-#: ../sstfg.php:533
+#: ../sstfg.php:537
 msgid "Your last ticket"
 msgstr "Votre dernier billet "
 
-#: ../sstfg.php:546
+#: ../sstfg.php:550
 msgid "Your new ticket"
 msgstr "Votre nouveau billet"
 
-#: ../sstfg.php:629
+#: ../sstfg.php:633
 msgid "Download it (PDF)"
 msgstr "Le télécharger (PDF)"
 
-#: ../sstfg.php:633
+#: ../sstfg.php:637
 msgid "It seems that you still don't have any tickets."
 msgstr "Il semble que vous n'ayez pas encore de billet"
 
-#: ../sstfg.php:636
+#: ../sstfg.php:640
 msgid "Something was wrong. We cannot serve you a new ticket."
 msgstr ""
 "Il y a eu une erreur. Nous ne pouvons pas vous remettre votre nouveau "
 "billet. "
 
-#: ../sstfg.php:681
+#: ../sstfg.php:685
 msgid "Get new ticket"
 msgstr "Obtenir un nouveau billet"
 
-#: ../sstfg.php:686
+#: ../sstfg.php:690
 msgid "Get the last ticket"
 msgstr "Obtenir le dernier billet "
+
+#~ msgid "subscription"
+#~ msgstr "Abonnement"
+
+#~ msgid "current sequence"
+#~ msgstr "Séquence actuelle"
+
+#~ msgid "ticket access mode"
+#~ msgstr "Mode d’accès aux billets"
+
+#~ msgid "manual"
+#~ msgstr "Manuel (à la demande)"
+
+#~ msgid "automatic"
+#~ msgstr "Automatique, selon une périodicité"
+
+#~ msgid "ticket access regularity"
+#~ msgstr "Périodicité"
+
+#~ msgid "once a week"
+#~ msgstr "Une fois par semaine"
+
+#~ msgid "twice a week"
+#~ msgstr "Deux fois par semaine"
+
+#~ msgid "ticket order"
+#~ msgstr "Mode de tirage"
+
+#~ msgid "random"
+#~ msgstr "Au hasard"
+
+#~ msgid "sequential"
+#~ msgstr "En séquence"
+
+#~ msgid "send me the tickets to my email address"
+#~ msgstr "Envoyez-moi les billets à mon adresse mail"
+
+#~ msgid "gotten tickets"
+#~ msgstr "Billets reçus"
+
+#~ msgid "Bebooda SSTFG verification"
+#~ msgstr "Bebooda SSTFG confirmation "
 
 #~ msgid "Password"
 #~ msgstr "Mot de passe"
