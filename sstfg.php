@@ -343,10 +343,17 @@ function sstfg_form_user_edit_profile($atts){
 		$ticket_access_mode_old = get_user_meta($user_id,'sstfg_ticket_access_mode',true);
 		$updated_id = wp_update_user( $fields_to_update );
 
+		$redirect_params = "?edit_profile=success";
 		if ( $ticket_access_mode_old == 'manual' && $fields_to_update['sstfg_ticket_access_mode'] == 'automatic' ) {
-
+			// add schedule event using wp-cron
+			sstfg_scheduled_access_to_tickets($user_id);
+			$redirect_params = "?edit_profile=scheduled";
+		} elseif ( $ticket_access_mode_old == 'automatic' && $fields_to_update['sstfg_ticket_access_mode'] == 'manual' ) {
+			sstfg_unscheduled_access_to_tickets($user_id);
+			$redirect_params = "?edit_profile=unscheduled";
 		}
-		wp_redirect(get_permalink()."?edit_profile=success");
+
+		wp_redirect(get_permalink().$redirect_params);
 		exit;
 
 	} // end if edit profile form has been sent
@@ -354,6 +361,10 @@ function sstfg_form_user_edit_profile($atts){
 	else {
 		if ( array_key_exists('edit_profile',$_GET) && sanitize_text_field($_GET['edit_profile']) == 'success' ) {
 			$feedback_type = "success"; $feedback_text = __('Settings for your SSTFG subscription has been updated.','sstfg');
+		} elseif ( array_key_exists('edit_profile',$_GET) && sanitize_text_field($_GET['edit_profile']) == 'scheduled' ) {
+			$feedback_type = "info"; $feedback_text = __('You have changed the way you get your SSTFG tickets: from now on you will receive one ticket per week in your mailbox. Remember you can get your ticket manually too using the button above.','sstfg');
+		} elseif ( array_key_exists('edit_profile',$_GET) && sanitize_text_field($_GET['edit_profile']) == 'scheduled' ) {
+			$feedback_type = "info"; $feedback_text = __('You have changed the way you get your SSTFG tickets: from now on you won\'t receive anymore tickets automatically in your mailbox. Remember you still can get them manually using the button above.','sstfg');
 
 		} else { $feedback_type = ''; }
 
@@ -551,7 +562,7 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 	}
 
 	// NEW
-	elseif ( $new_or_last == 'new' ) {
+	elseif ( $new_or_last == 'new' || $new_or_last == 'scheduled' ) {
 		$text_out = __('Your new ticket','sstfg');
 		if ( $user_subscription == '1.5' )
 			return;
@@ -608,7 +619,7 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 				'ID' => $t->ID,
 				'date' => time()
 			);
-			if ( $new_or_last == 'new' ) {
+			if ( $new_or_last == 'new' || $new_or_last == 'scheduled' ) {
 				update_user_meta( $user_id,'sstfg_tickets',$user_tickets);
 			}
 			$count_user_tickets = count($user_tickets);
@@ -630,7 +641,7 @@ function sstfg_get_ticket($user_id,$new_or_last) {
 			foreach ( $pdfs as $p ) { $pdf_url = $p->guid; }
 		}
 		// SEND TICKET BY MAIL
-		if ( $new_or_last == 'new' && $user_send_me_tickets == 'please' )
+		if ( $new_or_last == 'new' && $user_send_me_tickets == 'please' || $new_or_last == 'scheduled' )
 			sstfg_send_ticket($user_id,$t->post_title,$pdf_url);
 
 		// OUTPUT
@@ -764,6 +775,27 @@ function sstfg_remove_cap_to_customer( $user_id, $subscription_key ) {
 	$user = new WP_User( $user_id );
 	$user->remove_cap( 'access_s2member_level0' );
 	$user->remove_cap( 'access_s2member_ccap_sstfg' );
+}
+
+// CRON TASKS
+////
+function sstfg_get_ticket_hourly($user_id) {
+	sstfg_get_ticket($user_id,'scheduled');
+	return;
+}
+function sstfg_scheduled_access_to_tickets($user_id) {
+	$args = array($user_id);
+	if( !wp_next_scheduled( 'sstfg_get_scheduled_ticket',$args ) )
+		wp_schedule_event( time(), 'hourly', 'sstfg_get_scheduled_ticket',$args );
+	return;
+}
+add_action( 'sstfg_get_scheduled_ticket', 'sstfg_get_ticket_hourly');
+function sstfg_unscheduled_access_to_tickets($user_id) {
+	$args = array($user_id);
+	$timestamp = wp_next_scheduled( 'sstfg_get_scheduled_ticket',$args );
+	wp_unschedule_event( $timestamp, 'sstfg_get_scheduled_ticket',$args );
+
+	return;
 }
 
 ?>
