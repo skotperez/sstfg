@@ -333,14 +333,19 @@ function sstfg_form_user_edit_profile($atts){
 		$email = sanitize_text_field($_POST['user_email']);
 
 		foreach ( $extra_fields as $ef ) {
-			if ( $ef['show_in_frontend'] == '1' ) {
+			if ( $ef['show_in_frontend'] == '1' && $ef['label'] != 'sstfg_current_sequence' ) {
 				$$ef['label'] = sanitize_text_field($_POST[$ef['label']]);
 				$fields_to_update[$ef['label']] = $$ef['label'];
 			}
 		}
 
 		$fields_to_update['ID'] = $user_id;
+		$ticket_access_mode_old = get_user_meta($user_id,'sstfg_ticket_access_mode',true);
 		$updated_id = wp_update_user( $fields_to_update );
+
+		if ( $ticket_access_mode_old == 'manual' && $fields_to_update['sstfg_ticket_access_mode'] == 'automatic' ) {
+
+		}
 		wp_redirect(get_permalink()."?edit_profile=success");
 		exit;
 
@@ -735,7 +740,7 @@ function sstfg_ticket_file_move_s2member() {
 add_action('woocommerce_order_status_completed', 'sstfg_add_cap_to_customer', 10, 1);
 //add_action('woocommerce_payment_complete', 'sstfg_add_cap_to_customer', 10, 1);
 function sstfg_add_cap_to_customer($order_id) {
-	global $extra_fields;
+	$extra_fields = sstfg_user_extra_fields();
 	$order = new WC_Order( $order_id );
 	$customer_id = (int)$order->user_id;
 	$items = $order->get_items();
@@ -746,10 +751,19 @@ function sstfg_add_cap_to_customer($order_id) {
 			$user->add_cap( 'access_s2member_ccap_sstfg' );
 			foreach ( $extra_fields as $ef ) {
 				$ef_value = get_user_meta( $customer_id,$ef['label'],true);
-				if ( $ef_value == '' ) { update_user_meta( $customer_id,$ef['label'],$ef['initial'] ); }
+				if ( $ef_value == '' || $ef_value === FALSE ) { update_user_meta( $customer_id,$ef['label'],$ef['initial'] ); }
 			}
 		}
 	}
+}
+
+add_action('subscription_expired', 'sstfg_remove_cap_to_customer', 10, 2);
+add_action('subscription_trial_end', 'sstfg_remove_cap_to_customer', 10, 2);
+function sstfg_remove_cap_to_customer( $user_id, $subscription_key ) {
+	$sub= wcs_get_subscription_from_key( $subscription_key );
+	$user = new WP_User( $user_id );
+	$user->remove_cap( 'access_s2member_level0' );
+	$user->remove_cap( 'access_s2member_ccap_sstfg' );
 }
 
 ?>
