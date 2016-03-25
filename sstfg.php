@@ -116,7 +116,7 @@ function sstfg_create_post_type() {
 		'publicly_queryable' => true,
 		'exclude_from_search' => true,
 		'menu_position' => 5,
-		'menu_icon' => 'dashicons-tickets',
+		'menu_icon' => 'dashicons-tickets-alt',
 		'hierarchical' => true, // if true this post type will be as pages
 		'query_var' => true,
 		'supports' => array('title', 'editor','author','page-attributes'),
@@ -793,7 +793,7 @@ function sstfg_add_weekly_schedule( $schedules ) {
 		'display' => __( 'Weekly', 'sstfg' )
 	);
 	$schedules['biweekly'] = array(
-		'interval' => 7 * 24 * 60 * 60 * 2
+		'interval' => 7 * 24 * 60 * 60 * 2,
 		'display' => __( 'Every two Week', 'my-plugin-domain' )
 	);
 	return $schedules;
