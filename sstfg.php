@@ -260,8 +260,9 @@ $extra_fields = array(
 		'label' => 'sstfg_ticket_access_regularity',
 		'type' => 'radio',
 		'options' => array(
-			'once' => __('Once a week','sstfg'),
-			'twice' => __('Twice a week','sstfg')
+			'daily' => __('Daily','sstfg'),
+			'weekly' => __('Weekly','sstfg'),
+			'biweekly' => __('Every two weeks','sstfg')
 		),
 		'initial' => '',
 		'show_in_frontend' => '1'
@@ -330,7 +331,7 @@ function sstfg_form_user_edit_profile($atts){
 	// if edit profile form has been sent
 	if ( array_key_exists('wp-submit',$_POST) ) {
 	
-		$email = sanitize_text_field($_POST['user_email']);
+		//$email = sanitize_text_field($_POST['user_email']);
 
 		foreach ( $extra_fields as $ef ) {
 			if ( $ef['show_in_frontend'] == '1' && $ef['label'] != 'sstfg_current_sequence' ) {
@@ -341,16 +342,22 @@ function sstfg_form_user_edit_profile($atts){
 
 		$fields_to_update['ID'] = $user_id;
 		$ticket_access_mode_old = get_user_meta($user_id,'sstfg_ticket_access_mode',true);
+		$ticket_access_regularity_old = get_user_meta($user_id,'sstfg_ticket_access_regularity',true);
 		$updated_id = wp_update_user( $fields_to_update );
 
 		$redirect_params = "?edit_profile=success";
 		if ( $ticket_access_mode_old == 'manual' && $fields_to_update['sstfg_ticket_access_mode'] == 'automatic' ) {
 			// add schedule event using wp-cron
-			sstfg_scheduled_access_to_tickets($user_id);
+			sstfg_scheduled_access_to_tickets($user_id,'daily');
+			update_user_meta( $user_id,'sstfg_ticket_access_regularity','daily' );
 			$redirect_params = "?edit_profile=scheduled";
 		} elseif ( $ticket_access_mode_old == 'automatic' && $fields_to_update['sstfg_ticket_access_mode'] == 'manual' ) {
 			sstfg_unscheduled_access_to_tickets($user_id);
+			update_user_meta( $user_id,'sstfg_ticket_access_regularity','' );
 			$redirect_params = "?edit_profile=unscheduled";
+		} elseif ( $fields_to_update['sstfg_ticket_access_mode'] == 'automatic' && $fields_to_update['sstfg_ticket_regularity'] != $ticket_access_regularity_old && $ticket_access_regularity_old != '' ) {
+			sstfg_unscheduled_access_to_tickets($user_id);
+			sstfg_scheduled_access_to_tickets($user_id,$fields_to_update['sstfg_ticket_regularity']);
 		}
 
 		wp_redirect(get_permalink().$redirect_params);
@@ -362,8 +369,8 @@ function sstfg_form_user_edit_profile($atts){
 		if ( array_key_exists('edit_profile',$_GET) && sanitize_text_field($_GET['edit_profile']) == 'success' ) {
 			$feedback_type = "success"; $feedback_text = __('Settings for your SSTFG subscription has been updated.','sstfg');
 		} elseif ( array_key_exists('edit_profile',$_GET) && sanitize_text_field($_GET['edit_profile']) == 'scheduled' ) {
-			$feedback_type = "info"; $feedback_text = __('You have changed the way you get your SSTFG tickets: from now on you will receive one ticket per week in your mailbox. Remember you can get your ticket manually too using the button above.','sstfg');
-		} elseif ( array_key_exists('edit_profile',$_GET) && sanitize_text_field($_GET['edit_profile']) == 'scheduled' ) {
+			$feedback_type = "info"; $feedback_text = __('You have changed the way you get your SSTFG tickets: from now on you will receive your tickets daily in your mailbox. Remember you can get your ticket manually too using the button above.','sstfg');
+		} elseif ( array_key_exists('edit_profile',$_GET) && sanitize_text_field($_GET['edit_profile']) == 'unscheduled' ) {
 			$feedback_type = "info"; $feedback_text = __('You have changed the way you get your SSTFG tickets: from now on you won\'t receive anymore tickets automatically in your mailbox. Remember you still can get them manually using the button above.','sstfg');
 
 		} else { $feedback_type = ''; }
@@ -779,22 +786,34 @@ function sstfg_remove_cap_to_customer( $user_id, $subscription_key ) {
 
 // CRON TASKS
 ////
-function sstfg_get_ticket_hourly($user_id) {
+add_filter( 'cron_schedules', 'sstfg_add_weekly_schedule' ); 
+function sstfg_add_weekly_schedule( $schedules ) {
+	$schedules['weekly'] = array(
+		'interval' => 7 * 24 * 60 * 60, //7 days * 24 hours * 60 minutes * 60 seconds
+		'display' => __( 'Weekly', 'sstfg' )
+	);
+	$schedules['biweekly'] = array(
+		'interval' => 7 * 24 * 60 * 60 * 2
+		'display' => __( 'Every two Week', 'my-plugin-domain' )
+	);
+	return $schedules;
+}
+
+function sstfg_get_scheduled_ticket_callback($user_id) {
 	sstfg_get_ticket($user_id,'scheduled');
 	return;
 }
-function sstfg_scheduled_access_to_tickets($user_id) {
+function sstfg_scheduled_access_to_tickets($user_id,$periodicity) {
 	$args = array($user_id);
 	if( !wp_next_scheduled( 'sstfg_get_scheduled_ticket',$args ) )
-		wp_schedule_event( time(), 'hourly', 'sstfg_get_scheduled_ticket',$args );
+		wp_schedule_event( time(), $periodicity, 'sstfg_get_scheduled_ticket',$args );
 	return;
 }
-add_action( 'sstfg_get_scheduled_ticket', 'sstfg_get_ticket_hourly');
+add_action( 'sstfg_get_scheduled_ticket', 'sstfg_get_scheduled_ticket_callback');
 function sstfg_unscheduled_access_to_tickets($user_id) {
 	$args = array($user_id);
 	$timestamp = wp_next_scheduled( 'sstfg_get_scheduled_ticket',$args );
 	wp_unschedule_event( $timestamp, 'sstfg_get_scheduled_ticket',$args );
-
 	return;
 }
 
